@@ -47,8 +47,7 @@ def run(pdf_path: Path = None, limit: int = None) -> None:
         pdfs = [pdf_path]
     else:
         cuad_dir = download_cuad()
-        pdf_dir = cuad_dir / "full_contract_pdf"
-        pdfs = sorted(pdf_dir.glob("*.pdf"))
+        pdfs = list(cuad_dir.rglob("*.pdf"))
         if limit:
             pdfs = pdfs[:limit]
 

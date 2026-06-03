@@ -45,6 +45,16 @@ def parse_pdf(pdf_path: Path) -> ParsedDocument:
         label = str(getattr(element, "label", "text"))
         text = getattr(element, "text", "").strip()
 
+        # Promote legal clause titles to headings
+        if label == "list_item":
+            first_sentence = text.split(".")[0].strip()
+
+            if (
+                len(first_sentence) < 80
+                and first_sentence[0].isupper()
+            ):
+                label = "heading_1"
+
         if not text:
             continue
 

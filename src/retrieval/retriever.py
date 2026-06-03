@@ -61,13 +61,13 @@ class HierarchicalRetriever:
             Filter(must=[FieldCondition(key="doc_id", match={"value": doc_id})])
             if doc_id else None
         )
-        section_hits = self.client.search(
+        section_hits = self.client.query_points(
             collection_name=COLLECTION_SECTIONS,
-            query_vector=query_vec,
+            query=query_vec,
             query_filter=section_filter,
             limit=self.top_sections,
             with_payload=True,
-        )
+        ).points
         sections = [_to_chunk(h) for h in section_hits]
 
         if not sections:
@@ -83,13 +83,13 @@ class HierarchicalRetriever:
                 FieldCondition(key="doc_id", match={"value": doc_id})
             )
 
-        sentence_hits = self.client.search(
+        sentence_hits = self.client.query_points(
             collection_name=COLLECTION_SENTENCES,
-            query_vector=query_vec,
+            query=query_vec,
             query_filter=sentence_filter,
             limit=self.top_sentences,
             with_payload=True,
-        )
+        ).points
         sentences = [_to_chunk(h) for h in sentence_hits]
 
         return RetrievalResult(query=query, sections=sections, sentences=sentences)
