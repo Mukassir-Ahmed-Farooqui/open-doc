@@ -11,13 +11,10 @@ print(result["answer"])
 
 print("\n=== SOURCES ===\n")
 
-for i, c in enumerate(
-    result["citations"],
-    start=1,
-):
+for i, citation in enumerate(result["citations"], start=1):
     print(
         f"[{i}] "
-        f"{c['document']} "
-        f"— Page {c['page']} "
-        f"— {c['section']}"
+        f"{citation['document']} "
+        f"— Page {citation['page']} "
+        f"— {citation['section']}"
     )

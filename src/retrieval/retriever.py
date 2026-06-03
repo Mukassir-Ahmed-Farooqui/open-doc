@@ -48,7 +48,7 @@ class HierarchicalRetriever:
         client: QdrantClient,
         model: Any,
         top_sections: int = 3,
-        top_sentences: int = 5,
+        top_sentences: int = 20,
     ):
         self.client = client
         self.model = model

@@ -1,10 +1,13 @@
+
 # src/chain.py
 
 from src.llm.groq_client import generate
 from src.prompts.legal_qa import LEGAL_QA_PROMPT
 from src.retrieval.retriever import HierarchicalRetriever
-from src.storage.qdrant_store import get_client, get_embedder
-
+from src.storage.qdrant_store import (
+    get_client,
+    get_embedder,
+)
 
 
 class LegalRAG:
@@ -20,7 +23,13 @@ class LegalRAG:
         results = self.retriever.retrieve(question)
 
         context = "\n\n".join(
-            chunk.text
+            f"""
+Document: {chunk.filename}
+Section: {chunk.heading}
+Page: {chunk.page_num}
+
+{chunk.text}
+"""
             for chunk in results.sentences
         )
 
@@ -47,11 +56,13 @@ class LegalRAG:
 
             seen.add(key)
 
-            citations.append({
-                "document": chunk.filename,
-                "page": chunk.page_num,
-                "section": chunk.heading,
-            })
+            citations.append(
+                {
+                    "document": chunk.filename,
+                    "page": chunk.page_num,
+                    "section": chunk.heading,
+                }
+            )
 
         return {
             "answer": answer,
