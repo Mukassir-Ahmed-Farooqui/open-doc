@@ -75,6 +75,53 @@ def chunk_document(
         max_section_tokens,
         min_tokens,
     )
+    
+    if len(section_chunks) == 0 and elements:
+        # Fallback for small valid documents
+        texts = []
+        heading = "Preamble"
+        heading_page = 1
+        heading_bbox = None
+        first_heading_seen = False
+        
+        for el in elements:
+            text = el.text.strip() if hasattr(el, "text") else el.get("text", "").strip()
+            if not text:
+                continue
+            el_type = el.element_type if hasattr(el, "element_type") else el.get("element_type", "")
+            page = el.page_num if hasattr(el, "page_num") else el.get("page_num", 1)
+            bbox = el.bbox if hasattr(el, "bbox") else el.get("bbox")
+
+            if "heading" in el_type.lower() or "section_header" in el_type.lower():
+                if not first_heading_seen:
+                    heading = text
+                    heading_page = page
+                    heading_bbox = bbox
+                    first_heading_seen = True
+                else:
+                    texts.append(text)
+            else:
+                texts.append(text)
+                
+        merged_text = "\n\n".join(texts)
+        if not merged_text and heading != "Preamble":
+            merged_text = heading
+            
+        tokens = _token_count(merged_text)
+        if tokens >= 10:  # Minimum fallback threshold to ignore tiny noise
+            section_chunks.append(SectionChunk(
+                filename=filename,
+                chunk_id=_chunk_id(doc_id, "section", 0),
+                doc_id=doc_id,
+                text=merged_text,
+                heading=heading,
+                page_num=heading_page,
+                end_page_num=heading_page,
+                bbox=heading_bbox,
+                section_index=0,
+                token_count=tokens,
+            ))
+            
     sentence_chunks = _build_sentences(
         section_chunks,
         doc_id,
@@ -216,7 +263,8 @@ def _build_sentences(
         def emit():
             nonlocal idx
             t = " ".join(buffer)
-            if _token_count(t) < min_tokens:
+            current_min = 10 if section.token_count < min_tokens else min_tokens
+            if _token_count(t) < current_min:
                 return
             chunks.append(SentenceChunk(
                 filename=section.filename,
