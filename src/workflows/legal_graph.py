@@ -11,7 +11,7 @@ from src.storage.qdrant_store import (
 
 class LegalState(TypedDict, total=False):
     question: str
-    doc_id: Optional[str]
+    doc_id: Optional[str | list[str]]
     retrieved_chunks: list[Any]
     answer: str
     citations: list[dict]

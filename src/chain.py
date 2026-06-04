@@ -9,7 +9,7 @@ class LegalRAG:
     def __init__(self):
         self.retriever = retriever
 
-    def ask(self, question: str, doc_id: Optional[str] = None):
+    def ask(self, question: str, doc_id: Optional[str | list[str]] = None):
         state = legal_graph.invoke({"question": question, "doc_id": doc_id})
         return {
             "answer": state.get("answer", ""),

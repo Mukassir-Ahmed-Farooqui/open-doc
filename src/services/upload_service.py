@@ -50,10 +50,13 @@ def ingest_uploaded_pdf(file: UploadFile) -> dict:
         COLLECTION_SENTENCES,
     )
 
+    file_size = file_path.stat().st_size
+
     return {
         "doc_id": parsed.doc_id,
         "filename": parsed.filename,
         "sections": n_sections,
         "sentences": n_sentences,
+        "file_size": file_size,
         "status": "indexed",
     }

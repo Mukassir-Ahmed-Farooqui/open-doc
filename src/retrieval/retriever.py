@@ -66,8 +66,17 @@ class HierarchicalRetriever:
         query_vec = embed_query(self.model, query)
 
         # Step 1 — Dense section retrieval
-        section_filter = (
-            Filter(
+        if isinstance(doc_id, list):
+            section_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="doc_id",
+                        match=MatchAny(any=doc_id),
+                    )
+                ]
+            )
+        elif doc_id:
+            section_filter = Filter(
                 must=[
                     FieldCondition(
                         key="doc_id",
@@ -75,9 +84,8 @@ class HierarchicalRetriever:
                     )
                 ]
             )
-            if doc_id
-            else None
-        )
+        else:
+            section_filter = None
 
         section_hits = self.client.query_points(
             collection_name=COLLECTION_SECTIONS,
@@ -127,7 +135,14 @@ class HierarchicalRetriever:
             ]
         )
 
-        if doc_id:
+        if isinstance(doc_id, list):
+            sentence_filter.must.append(
+                FieldCondition(
+                    key="doc_id",
+                    match=MatchAny(any=doc_id),
+                )
+            )
+        elif doc_id:
             sentence_filter.must.append(
                 FieldCondition(
                     key="doc_id",
