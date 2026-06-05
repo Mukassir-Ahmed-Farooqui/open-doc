@@ -113,6 +113,11 @@ class Document(Base):
         server_default=text("0"),
         nullable=False,
     )
+    num_pages: Mapped[int] = mapped_column(
+        Integer,
+        server_default=text("1"),
+        nullable=False,
+    )
     is_deleted: Mapped[bool] = mapped_column(
         Boolean,
         server_default=text("false"),
@@ -232,6 +237,11 @@ class Chat(Base):
         UUID(as_uuid=True),
         ForeignKey("documents.doc_id", ondelete="SET NULL"),
         nullable=True,
+    )
+    selected_doc_ids: Mapped[list[str] | None] = mapped_column(
+        JSON,
+        nullable=True,
+        default=list,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { useDocuments } from './hooks/useDocuments';
 import { useChat } from './hooks/useChat';
@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DocumentsPanel } from './components/documents/DocumentsPanel';
 import { ChatArea } from './components/chat/ChatArea';
 import { InputBar } from './components/chat/InputBar';
+import { SettingsPage } from './components/settings/SettingsPage';
 import { Toaster } from 'react-hot-toast';
 import { truncateFilename } from './services/api';
 import {
@@ -18,18 +19,20 @@ import {
   Globe,
   FileText,
   Trash2,
-  ListFilter,
   Plus,
   MessageSquare,
   Edit,
   Check,
   X,
   Database,
+  ChevronDown,
+  Settings,
 } from 'lucide-react';
 
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { documents, uploadProgress, uploadDocument, deleteDocument } = useDocuments();
   
   const { isAuthenticated } = useAuth();
@@ -37,7 +40,7 @@ const DashboardLayout = () => {
     chats,
     activeChatId,
     activeChat,
-    selectedDocId,
+    selectedDocIds,
     messages,
     isQuerying,
     isLoadingChats,
@@ -47,11 +50,12 @@ const DashboardLayout = () => {
     handleCreateChat,
     handleRenameChat,
     handleDeleteChat,
-    handleUpdateScope,
-  } = useChat(isAuthenticated);
+    handleUpdateWorkspaceDocs,
+  } = useChat(isAuthenticated, documents);
 
   // Layout states
   const [isDocsOpen, setIsDocsOpen] = useState(true);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
 
@@ -62,8 +66,15 @@ const DashboardLayout = () => {
     }
   };
 
-  // Find active doc filename
-  const activeDocName = documents.find((doc) => doc.doc_id === selectedDocId)?.filename || '';
+  const getInitials = (name) => {
+    if (!name) return 'LA';
+    return name
+      .split(' ')
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const startEditing = (chat, e) => {
     e.stopPropagation();
@@ -83,8 +94,16 @@ const DashboardLayout = () => {
     setEditingChatId(null);
   };
 
+  const handleNewChatClick = () => {
+    const defaultWorkspaceMode = localStorage.getItem('cs_default_workspace') || 'all';
+    const initialSelection = defaultWorkspaceMode === 'all' 
+      ? documents.map(d => d.doc_id) 
+      : [];
+    handleCreateChat(initialSelection);
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-screen bg-slate-100 dark:bg-slate-950 overflow-hidden font-sans">
       {/* Premium Top Navigation Bar */}
       <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0 shadow-md z-10 select-none">
         <div className="flex items-center gap-2.5">
@@ -99,20 +118,60 @@ const DashboardLayout = () => {
           </div>
         </div>
 
-        {/* User Identity and Logout */}
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-xs font-bold text-slate-200">{user?.full_name || 'Legal Analyst'}</p>
-            <p className="text-[10px] text-slate-400 font-mono">{user?.email}</p>
-          </div>
-          <div className="h-8 w-px bg-slate-800" />
+        {/* User Dropdown Menu */}
+        <div className="relative">
           <button
-            onClick={handleLogout}
-            className="flex items-center justify-center p-2 rounded-lg bg-slate-800/50 hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-slate-800 transition-all cursor-pointer"
-            title="Sign out of platform"
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-2.5 hover:bg-slate-800/60 p-1.5 rounded-xl transition-all cursor-pointer select-none border border-transparent hover:border-slate-800"
           >
-            <LogOut className="h-4 w-4" />
+            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md uppercase">
+              {getInitials(user?.full_name)}
+            </div>
+            <div className="text-left hidden sm:block">
+              <p className="text-xs font-bold text-slate-200">{user?.full_name || 'Legal Analyst'}</p>
+              <p className="text-[9px] text-slate-450 font-mono truncate max-w-[120px]">{user?.email}</p>
+            </div>
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
           </button>
+
+          {isUserMenuOpen && (
+            <>
+              {/* Click-out backdrop */}
+              <div 
+                className="fixed inset-0 z-20 cursor-default" 
+                onClick={() => setIsUserMenuOpen(false)} 
+              />
+              
+              <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl z-30 py-1.5 select-none animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="px-3.5 py-2 border-b border-slate-800">
+                  <p className="text-xs font-bold text-slate-200 truncate">{user?.full_name}</p>
+                  <p className="text-[10px] text-slate-500 font-mono truncate mt-0.5">{user?.email}</p>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    navigate('/settings');
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <Settings className="h-3.5 w-3.5 text-slate-450" />
+                  <span>Settings</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-950/20 border-t border-slate-805 transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -120,10 +179,10 @@ const DashboardLayout = () => {
       <main className="flex-1 flex min-h-0 overflow-hidden">
         
         {/* Column 1: Left Chat Sidebar (245px width) */}
-        <aside className="w-[245px] bg-slate-900 border-r border-slate-800 flex flex-col min-h-0 shrink-0 text-slate-350 select-none">
+        <aside className="w-[245px] bg-slate-900 border-r border-slate-800 flex flex-col min-h-0 shrink-0 text-slate-300 select-none">
           <div className="p-4 border-b border-slate-800 shrink-0">
             <button
-              onClick={() => handleCreateChat('corpus')}
+              onClick={handleNewChatClick}
               className="w-full py-2.5 px-4 bg-blue-650 hover:bg-blue-600 active:bg-blue-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border border-blue-500/30"
               title="Create a clean chat session"
             >
@@ -134,14 +193,19 @@ const DashboardLayout = () => {
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             <div className="px-2 py-1.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-              Chat History
+              Chat Sessions
             </div>
             {isLoadingChats && chats.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-555">
-                Loading history...
+              <div className="p-2 space-y-2 animate-pulse">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-800/40">
+                    <div className="h-4.5 w-4.5 rounded bg-slate-700/60" />
+                    <div className="h-3 bg-slate-700/60 rounded flex-1" />
+                  </div>
+                ))}
               </div>
             ) : chats.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-555">
+              <div className="p-4 text-center text-xs text-slate-500">
                 No chats yet.
               </div>
             ) : (
@@ -156,7 +220,7 @@ const DashboardLayout = () => {
                     className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer select-none text-xs font-semibold ${
                       isActive
                         ? 'bg-slate-800 text-white shadow-inner border-l-4 border-blue-500'
-                        : 'hover:bg-slate-850 hover:text-slate-200 text-slate-400'
+                        : 'hover:bg-slate-850 hover:text-slate-205 text-slate-400'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -218,7 +282,7 @@ const DashboardLayout = () => {
                         </button>
                         <button
                           onClick={cancelRename}
-                          className="p-1 hover:bg-slate-700 rounded text-red-400 hover:text-red-350"
+                          className="p-1 hover:bg-slate-700 rounded text-red-400 hover:text-red-300"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -240,55 +304,36 @@ const DashboardLayout = () => {
                 Audit Query Workspace
               </h3>
               <div className="flex items-center gap-2">
-                <span className="text-[10.5px] uppercase font-bold text-slate-405 select-none">Current Scope:</span>
+                <span className="text-[10.5px] uppercase font-bold text-slate-400 select-none">Current Workspace:</span>
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                  selectedDocId 
+                  selectedDocIds.length > 0 
                     ? 'bg-blue-50 text-blue-700 border-blue-100 shadow-2xs' 
                     : 'bg-slate-100 text-slate-700 border-slate-200'
                 }`}>
-                  {selectedDocId ? (
-                    <>
-                      <FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" />
-                      <span className="truncate" title={activeDocName}>{truncateFilename(activeDocName, 32)}</span>
-                    </>
-                  ) : (
+                  {selectedDocIds.length === 0 ? (
                     <>
                       <Globe className="h-3.5 w-3.5 shrink-0 text-slate-500" />
                       <span>All Contracts (Corpus-wide)</span>
+                    </>
+                  ) : selectedDocIds.length === 1 ? (
+                    <>
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                      <span className="truncate max-w-[200px]" title={documents.find((doc) => doc.doc_id === selectedDocIds[0])?.filename || ''}>
+                        {truncateFilename(documents.find((doc) => doc.doc_id === selectedDocIds[0])?.filename || 'Active Contract', 32)}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+                      <span>{selectedDocIds.length} Selected Contracts</span>
                     </>
                   )}
                 </span>
               </div>
             </div>
 
-            {/* Scope Control UI */}
+            {/* Documents Visibility Control */}
             <div className="flex items-center gap-2 shrink-0">
-              <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5">
-                <ListFilter className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-600 uppercase select-none">Scope:</span>
-                <select
-                  value={selectedDocId}
-                  onChange={(e) => {
-                    if (activeChatId) {
-                      handleUpdateScope(
-                        activeChatId,
-                        e.target.value ? 'document' : 'corpus',
-                        e.target.value || null
-                      );
-                    }
-                  }}
-                  className="bg-transparent border-none text-[11px] font-bold text-slate-800 outline-none pr-1 max-w-[180px] truncate cursor-pointer"
-                >
-                  <option value="">All Contracts (Corpus-wide)</option>
-                  {documents.map((doc) => (
-                    <option key={doc.doc_id} value={doc.doc_id}>
-                      {truncateFilename(doc.filename, 28)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Toggle Document Panel Button */}
               <button
                 onClick={() => setIsDocsOpen(!isDocsOpen)}
                 className={`p-1.5 rounded-xl border transition-all flex items-center gap-1 cursor-pointer text-xs font-semibold ${
@@ -299,15 +344,20 @@ const DashboardLayout = () => {
                 title={isDocsOpen ? "Collapse Document Repository" : "Expand Document Repository"}
               >
                 <Database className="h-3.5 w-3.5" />
-                <span className="hidden md:inline select-none">Documents</span>
+                <span className="hidden md:inline select-none font-bold text-[11px] uppercase">Source Documents</span>
               </button>
             </div>
           </div>
 
           {/* Messages Scrolling Area */}
           {isLoadingMessages ? (
-            <div className="flex-1 flex items-center justify-center bg-slate-50/20 text-slate-400 text-xs">
-              Loading chat messages...
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-0 bg-slate-50/20 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={`flex flex-col gap-2 ${i % 2 === 0 ? 'items-end' : 'items-start'}`}>
+                  <div className="h-3.5 w-16 bg-slate-200 rounded" />
+                  <div className={`h-16 w-2/3 bg-slate-200 rounded-2xl ${i % 2 === 0 ? 'rounded-tr-none' : 'rounded-tl-none'}`} />
+                </div>
+              ))}
             </div>
           ) : (
             <ChatArea
@@ -322,10 +372,10 @@ const DashboardLayout = () => {
           <InputBar
             onSend={askQuestion}
             disabled={isQuerying || isLoadingMessages}
-            selectedDocId={selectedDocId}
+            selectedDocIds={selectedDocIds}
             placeholder={
-              selectedDocId 
-                ? `Ask a question about this agreement...` 
+              selectedDocIds.length > 0 
+                ? `Ask a question about the ${selectedDocIds.length} selected ${selectedDocIds.length === 1 ? 'agreement' : 'agreements'}...` 
                 : 'Analyze agreements, retrieve evidence, and get citation-backed answers...'
             }
           />
@@ -351,6 +401,12 @@ const DashboardLayout = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <DocumentsPanel
                 documents={documents}
+                selectedDocIds={selectedDocIds}
+                onUpdateSelection={(newIds) => {
+                  if (activeChatId) {
+                    handleUpdateWorkspaceDocs(activeChatId, newIds);
+                  }
+                }}
                 uploadProgress={uploadProgress}
                 onUpload={uploadDocument}
                 onDeleteDoc={deleteDocument}
@@ -364,6 +420,16 @@ const DashboardLayout = () => {
 };
 
 export const App = () => {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('cs_theme') || 'light';
+    const root = window.document.documentElement;
+    if (savedTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <Routes>
@@ -374,6 +440,7 @@ export const App = () => {
         {/* Protected Dashboard Route */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<DashboardLayout />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* Catch-all Redirect */}

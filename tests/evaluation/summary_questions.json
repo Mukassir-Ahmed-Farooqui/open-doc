@@ -1,0 +1,44 @@
+[
+  {
+    "question": "Provide a summary of the Arca development agreement.",
+    "expected_answer": "A summary of the development agreement between Arca U.S. Treasury Fund and Blockchain Administrator.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the Arca agreement about?",
+    "expected_answer": "It is a Development Agreement where the Blockchain Administrator agrees to provide blockchain related administrative services.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "Summarize the Pelican Delivers software development agreement.",
+    "expected_answer": "A summary of the software development agreement between Pelican Delivers Inc and the Developer.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf"
+  },
+  {
+    "question": "Give me an overview of the Pelican Delivers agreement.",
+    "expected_answer": "An overview of the development, testing, acceptance, milestones, and intellectual property rights under the Pelican Delivers software development agreement.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf"
+  },
+  {
+    "question": "Provide a summary of the Beta consulting agreement.",
+    "expected_answer": "A summary of the Beta Consulting Agreement, including project codename TIGER-456, 90 days termination notice, $500,000 liability cap, and New York governing law.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "beta_contract.pdf"
+  },
+  {
+    "question": "What is the Beta consulting agreement about?",
+    "expected_answer": "It is a consulting agreement governed by New York law, covering project TIGER-456, termination notice of 90 days, and a $500,000 liability cap.",
+    "expected_section": "Document Summary",
+    "expected_page": 1,
+    "filename": "beta_contract.pdf"
+  }
+]

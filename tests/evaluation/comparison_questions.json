@@ -1,0 +1,30 @@
+[
+  {
+    "question": "Compare the governing law of the Beta consulting agreement and the Pelican Delivers agreement.",
+    "expected_answer": "The Beta consulting agreement is governed by New York law, while the Pelican Delivers agreement is governed by the laws of the State of Washington.",
+    "expected_section": "BETA CONSULTING AGREEMENT / 12.1 CHOICE OF LAW AND VENUE",
+    "expected_page": 1,
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "Compare the termination notice period between the Beta consulting agreement and the Arca development agreement.",
+    "expected_answer": "The Beta consulting agreement requires 90 days of written notice, while the Arca development agreement requires 60 days of written notice.",
+    "expected_section": "BETA CONSULTING AGREEMENT / 7. Duration and Termination of this Agreement",
+    "expected_page": 1,
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "Compare the project codenames of the Alpha software agreement and the Beta consulting agreement.",
+    "expected_answer": "The project codename for the Alpha software agreement is BANANA-123, while for the Beta consulting agreement it is TIGER-456.",
+    "expected_section": "ALPHA SOFTWARE AGREEMENT / BETA CONSULTING AGREEMENT",
+    "expected_page": 1,
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "What is the difference between the liability cap of the Beta consulting agreement and the Alpha software agreement?",
+    "expected_answer": "The liability cap of the Beta consulting agreement is $500,000, while the liability cap of the Alpha software agreement is $10,000.",
+    "expected_section": "BETA CONSULTING AGREEMENT / ALPHA SOFTWARE AGREEMENT",
+    "expected_page": 1,
+    "filename": "Cross-Document"
+  }
+]

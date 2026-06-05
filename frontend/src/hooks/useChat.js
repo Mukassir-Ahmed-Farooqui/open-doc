@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { chatService } from '../services/api';
 import toast from 'react-hot-toast';
 
-export const useChat = (isAuthenticated) => {
+export const useChat = (isAuthenticated, documents = []) => {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -12,9 +12,7 @@ export const useChat = (isAuthenticated) => {
 
   // Active chat metadata derived from state
   const activeChat = chats.find((c) => c.id === activeChatId) || null;
-  const selectedDocId = activeChat && activeChat.scope_type === 'document' 
-    ? activeChat.scope_doc_id || '' 
-    : '';
+  const selectedDocIds = activeChat ? activeChat.selected_doc_ids || [] : [];
 
   // Loads messages for a specific chat ID
   const loadChatMessages = useCallback(async (chatId) => {
@@ -55,7 +53,11 @@ export const useChat = (isAuthenticated) => {
         await loadChatMessages(finalId);
       } else {
         // No chats exist yet. Create the initial one automatically.
-        const newChat = await chatService.create('corpus');
+        const defaultWorkspaceMode = localStorage.getItem('cs_default_workspace') || 'all';
+        const initialSelection = defaultWorkspaceMode === 'all' 
+          ? documents.map(d => d.doc_id) 
+          : [];
+        const newChat = await chatService.create(initialSelection);
         setChats([newChat]);
         setActiveChatId(newChat.id);
         setMessages([]);
@@ -66,7 +68,7 @@ export const useChat = (isAuthenticated) => {
     } finally {
       setIsLoadingChats(false);
     }
-  }, [loadChatMessages]);
+  }, [loadChatMessages, documents]);
 
   // Handle loading chat list when authentication changes
   useEffect(() => {
@@ -88,10 +90,10 @@ export const useChat = (isAuthenticated) => {
   };
 
   // Create a new empty chat session
-  const handleCreateChat = async (scopeType = 'corpus', scopeDocId = null) => {
+  const handleCreateChat = async (selectedDocIds = []) => {
     setIsLoadingChats(true);
     try {
-      const newChat = await chatService.create(scopeType, scopeDocId);
+      const newChat = await chatService.create(selectedDocIds);
       setChats((prev) => [newChat, ...prev]);
       setActiveChatId(newChat.id);
       setMessages([]);
@@ -137,7 +139,7 @@ export const useChat = (isAuthenticated) => {
           await loadChatMessages(remaining[0].id);
         } else {
           // No chats left. Auto-create a new one to prevent orphaned UI.
-          const newChat = await chatService.create('corpus');
+          const newChat = await chatService.create([]);
           setChats([newChat]);
           setActiveChatId(newChat.id);
           setMessages([]);
@@ -150,24 +152,24 @@ export const useChat = (isAuthenticated) => {
     }
   };
 
-  // Update the scope of the chat session
-  const handleUpdateScope = async (chatId, scopeType, scopeDocId = null) => {
+  // Update selected document IDs of the chat session
+  const handleUpdateWorkspaceDocs = async (chatId, selectedDocIds) => {
     try {
-      const updated = await chatService.updateScope(chatId, scopeType, scopeDocId);
+      const updated = await chatService.updateWorkspaceDocs(chatId, selectedDocIds);
       setChats((prev) =>
         prev.map((c) =>
           c.id === chatId
-            ? { ...c, scope_type: updated.scope_type, scope_doc_id: updated.scope_doc_id }
+            ? { ...c, selected_doc_ids: updated.selected_doc_ids }
             : c
         )
       );
-      toast.success(`Scope updated to ${scopeType === 'document' ? 'document' : 'corpus-wide'}.`);
+      toast.success("Workspace document selection updated.");
     } catch (err) {
-      console.error("Failed to update chat scope:", err);
+      console.error("Failed to update workspace documents:", err);
       if (err.response && err.response.data && err.response.data.detail) {
         toast.error(err.response.data.detail);
       } else {
-        toast.error("Failed to update query scope.");
+        toast.error("Failed to update document selection.");
       }
     }
   };
@@ -246,7 +248,7 @@ export const useChat = (isAuthenticated) => {
     chats,
     activeChatId,
     activeChat,
-    selectedDocId,
+    selectedDocIds,
     messages,
     isQuerying,
     isLoadingChats,
@@ -256,6 +258,6 @@ export const useChat = (isAuthenticated) => {
     handleCreateChat,
     handleRenameChat,
     handleDeleteChat,
-    handleUpdateScope,
+    handleUpdateWorkspaceDocs,
   };
 };

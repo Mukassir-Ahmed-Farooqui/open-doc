@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 export const InputBar = ({
   onSend,
   disabled,
-  selectedDocId,
+  selectedDocIds = [],
   placeholder = 'Ask a question about the active contracts...',
 }) => {
   const [text, setText] = useState('');
@@ -67,8 +67,8 @@ export const InputBar = ({
               <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
               <span>Analyzing...</span>
             </span>
-          ) : selectedDocId ? (
-            'Analyze Agreement'
+          ) : selectedDocIds.length > 0 ? (
+            selectedDocIds.length === 1 ? 'Analyze Agreement' : 'Analyze Selection'
           ) : (
             'Analyze Corpus'
           )}

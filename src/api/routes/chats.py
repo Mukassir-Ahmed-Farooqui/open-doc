@@ -1,7 +1,7 @@
 import time
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
@@ -11,7 +11,7 @@ from src.db.models import User, Chat, Message, Document
 from src.models.requests import (
     ChatCreateRequest,
     ChatRenameRequest,
-    ChatScopeUpdateRequest,
+    ChatDocumentsUpdateRequest,
     MessageCreateRequest,
 )
 from src.models.responses import (
@@ -24,8 +24,35 @@ from src.models.responses import (
 from src.api.dependencies import get_rag_pipeline
 from src.chain import LegalRAG
 from src.services import audit_service
+from src.llm.groq_client import generate
+from src.db.database import SessionLocal
 
 router = APIRouter()
+
+
+def generate_chat_title_async(chat_id: str, first_message: str):
+    """
+    Background task to generate a concise 4-6 word title using Groq
+    after the first user message, with zero inline latency.
+    """
+    db = SessionLocal()
+    try:
+        chat_uuid = uuid.UUID(chat_id)
+        chat = db.query(Chat).filter(Chat.id == chat_uuid).first()
+        if chat and chat.title == "New Chat":
+            prompt = f"Convert this user question into a concise 4-6 word chat title.\n\nReturn only the title.\n\nQuestion:\n{first_message}"
+            new_title = generate(prompt).strip()
+            if new_title.startswith('"') and new_title.endswith('"'):
+                new_title = new_title[1:-1].strip()
+            if new_title.startswith("'") and new_title.endswith("'"):
+                new_title = new_title[1:-1].strip()
+            chat.title = new_title
+            chat.updated_at = func.now()
+            db.commit()
+    except Exception as e:
+        print(f"Failed to generate async chat title: {e}")
+    finally:
+        db.close()
 
 
 @router.get("", response_model=List[ChatResponse])
@@ -47,8 +74,7 @@ def list_chats(
             ChatResponse(
                 id=str(c.id),
                 title=c.title,
-                scope_type=c.scope_type,
-                scope_doc_id=str(c.scope_doc_id) if c.scope_doc_id else None,
+                selected_doc_ids=[str(doc_id) for doc_id in (c.selected_doc_ids or [])],
                 created_at=c.created_at.isoformat(),
                 updated_at=c.updated_at.isoformat(),
             )
@@ -68,46 +94,39 @@ def create_chat(
     db: Session = Depends(get_db),
 ):
     """
-    Create a new empty chat session with the specified scope.
+    Create a new empty chat session scoped to specific documents.
     """
     try:
-        scope_doc_uuid = None
-        if request.scope_type == "document":
-            if not request.scope_doc_id:
-                raise HTTPException(
-                    status_code=400,
-                    detail="scope_doc_id is required when scope_type is 'document'.",
-                )
-            try:
-                scope_doc_uuid = uuid.UUID(request.scope_doc_id)
-            except ValueError:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid scope_doc_id format.",
-                )
-
-            # Validate document exists and is owned by the current user
-            doc = (
-                db.query(Document)
-                .filter(Document.doc_id == scope_doc_uuid, Document.is_deleted == False)
-                .first()
-            )
-            if not doc:
-                raise HTTPException(
-                    status_code=404,
-                    detail="The document scoped to this chat was not found.",
-                )
-            if doc.owner_id != current_user.id:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Ownership denied. You do not own this document.",
-                )
+        validated_ids = []
+        if request.selected_doc_ids:
+            for doc_id_str in request.selected_doc_ids:
+                try:
+                    doc_uuid = uuid.UUID(doc_id_str)
+                except ValueError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid document UUID: {doc_id_str}",
+                    )
+                doc = db.query(Document).filter(
+                    Document.doc_id == doc_uuid,
+                    Document.is_deleted == False
+                ).first()
+                if not doc:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Document {doc_id_str} not found.",
+                    )
+                if doc.owner_id != current_user.id:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Ownership denied. You do not own this document.",
+                    )
+                validated_ids.append(str(doc.doc_id))
 
         new_chat = Chat(
             user_id=current_user.id,
             title="New Chat",
-            scope_type=request.scope_type,
-            scope_doc_id=scope_doc_uuid,
+            selected_doc_ids=validated_ids,
         )
         db.add(new_chat)
         db.commit()
@@ -116,8 +135,7 @@ def create_chat(
         return ChatResponse(
             id=str(new_chat.id),
             title=new_chat.title,
-            scope_type=new_chat.scope_type,
-            scope_doc_id=str(new_chat.scope_doc_id) if new_chat.scope_doc_id else None,
+            selected_doc_ids=[str(doc_id) for doc_id in (new_chat.selected_doc_ids or [])],
             created_at=new_chat.created_at.isoformat(),
             updated_at=new_chat.updated_at.isoformat(),
         )
@@ -188,8 +206,7 @@ def get_chat_detail(
     return ChatDetailResponse(
         id=str(chat.id),
         title=chat.title,
-        scope_type=chat.scope_type,
-        scope_doc_id=str(chat.scope_doc_id) if chat.scope_doc_id else None,
+        selected_doc_ids=[str(doc_id) for doc_id in (chat.selected_doc_ids or [])],
         created_at=chat.created_at.isoformat(),
         updated_at=chat.updated_at.isoformat(),
         messages=messages_resp,
@@ -236,8 +253,7 @@ def rename_chat(
         return ChatResponse(
             id=str(chat.id),
             title=chat.title,
-            scope_type=chat.scope_type,
-            scope_doc_id=str(chat.scope_doc_id) if chat.scope_doc_id else None,
+            selected_doc_ids=[str(doc_id) for doc_id in (chat.selected_doc_ids or [])],
             created_at=chat.created_at.isoformat(),
             updated_at=chat.updated_at.isoformat(),
         )
@@ -249,15 +265,15 @@ def rename_chat(
         )
 
 
-@router.patch("/{chat_id}/scope", response_model=ChatResponse)
-def update_chat_scope(
+@router.patch("/{chat_id}/documents", response_model=ChatResponse)
+def update_chat_documents(
     chat_id: str,
-    request: ChatScopeUpdateRequest,
+    request: ChatDocumentsUpdateRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Update the scope (type and target document) of an existing chat session.
+    Update the list of selected document IDs for a chat session.
     """
     try:
         chat_uuid = uuid.UUID(chat_id)
@@ -281,40 +297,33 @@ def update_chat_scope(
         )
 
     try:
-        scope_doc_uuid = None
-        if request.scope_type == "document":
-            if not request.scope_doc_id:
-                raise HTTPException(
-                    status_code=400,
-                    detail="scope_doc_id is required when scope_type is 'document'.",
-                )
-            try:
-                scope_doc_uuid = uuid.UUID(request.scope_doc_id)
-            except ValueError:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid scope_doc_id format.",
-                )
+        validated_ids = []
+        if request.selected_doc_ids:
+            for doc_id_str in request.selected_doc_ids:
+                try:
+                    doc_uuid = uuid.UUID(doc_id_str)
+                except ValueError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid document UUID: {doc_id_str}",
+                    )
+                doc = db.query(Document).filter(
+                    Document.doc_id == doc_uuid,
+                    Document.is_deleted == False
+                ).first()
+                if not doc:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Document {doc_id_str} not found.",
+                    )
+                if doc.owner_id != current_user.id:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Ownership denied. You do not own this document.",
+                    )
+                validated_ids.append(str(doc.doc_id))
 
-            # Validate document exists and is owned by the current user
-            doc = (
-                db.query(Document)
-                .filter(Document.doc_id == scope_doc_uuid, Document.is_deleted == False)
-                .first()
-            )
-            if not doc:
-                raise HTTPException(
-                    status_code=404,
-                    detail="The document scoped to this chat was not found.",
-                )
-            if doc.owner_id != current_user.id:
-                raise HTTPException(
-                    status_code=403,
-                    detail="Ownership denied. You do not own this document.",
-                )
-
-        chat.scope_type = request.scope_type
-        chat.scope_doc_id = scope_doc_uuid
+        chat.selected_doc_ids = validated_ids
         chat.updated_at = func.now()
         db.commit()
         db.refresh(chat)
@@ -322,8 +331,7 @@ def update_chat_scope(
         return ChatResponse(
             id=str(chat.id),
             title=chat.title,
-            scope_type=chat.scope_type,
-            scope_doc_id=str(chat.scope_doc_id) if chat.scope_doc_id else None,
+            selected_doc_ids=[str(doc_id) for doc_id in (chat.selected_doc_ids or [])],
             created_at=chat.created_at.isoformat(),
             updated_at=chat.updated_at.isoformat(),
         )
@@ -333,7 +341,7 @@ def update_chat_scope(
         db.rollback()
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to update chat scope: {str(e)}",
+            detail=f"Failed to update chat workspace: {str(e)}",
         )
 
 
@@ -401,13 +409,14 @@ def _format_history_block(messages: List[Message], max_chars: int = 6000) -> str
 def create_message(
     chat_id: str,
     request: MessageCreateRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     rag: LegalRAG = Depends(get_rag_pipeline),
 ):
     """
     Post a user question under a chat session, retrieve previous context turns,
-    validate document scopes, run RAG, and persist user/assistant dialog turn.
+    validate document selections, run RAG, and persist user/assistant dialog turn.
     """
     start_time = time.perf_counter()
     try:
@@ -431,37 +440,11 @@ def create_message(
             detail="Ownership denied. You do not own this chat session.",
         )
 
-    allowed_doc_ids = None
+    allowed_doc_ids = []
     document_id_db = None
 
-    # Scope Validation
-    if chat.scope_type == "document":
-        if not chat.scope_doc_id:
-            raise HTTPException(
-                status_code=400,
-                detail="The document scoped to this chat has been deleted. Please create a new chat or switch to corpus mode.",
-            )
-
-        # Check if the document still exists and is not deleted
-        doc = (
-            db.query(Document)
-            .filter(Document.doc_id == chat.scope_doc_id, Document.is_deleted == False)
-            .first()
-        )
-        if not doc:
-            raise HTTPException(
-                status_code=400,
-                detail="The document scoped to this chat has been deleted. Please create a new chat or switch to corpus mode.",
-            )
-        if doc.owner_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Ownership denied. You do not own the document scoped to this chat.",
-            )
-
-        allowed_doc_ids = str(doc.doc_id)
-        document_id_db = doc.id
-    else:
+    # Load active workspace documents and validate
+    if not chat.selected_doc_ids:
         # Corpus mode: retrieve all active documents owned by the user
         user_docs = (
             db.query(Document)
@@ -473,16 +456,17 @@ def create_message(
             answer = "You have not uploaded any documents yet. Please upload a PDF before querying."
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
-            # Transaction: Save user query and assistant response together in a transaction
             try:
+                # Check if this is first message to trigger title generation
+                is_first = db.query(Message).filter(Message.chat_id == chat.id).count() == 0
+
                 user_msg = Message(
                     chat_id=chat.id, role="user", content=request.question
                 )
                 db.add(user_msg)
 
-                # Title update if this is the first question
-                if chat.title == "New Chat":
-                    chat.title = request.question
+                if is_first:
+                    background_tasks.add_task(generate_chat_title_async, str(chat.id), request.question)
 
                 chat.updated_at = func.now()
                 db.flush()
@@ -525,15 +509,54 @@ def create_message(
                 )
 
         allowed_doc_ids = [str(d.doc_id) for d in user_docs]
+    else:
+        # Validate that all selected documents still exist and are owned by the user
+        for doc_id_str in chat.selected_doc_ids:
+            try:
+                doc_uuid = uuid.UUID(doc_id_str)
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid document UUID: {doc_id_str}",
+                )
+            doc = db.query(Document).filter(
+                Document.doc_id == doc_uuid,
+                Document.is_deleted == False
+            ).first()
+            if not doc:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Document {doc_id_str} not found or has been deleted.",
+                )
+            if doc.owner_id != current_user.id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Ownership denied. You do not own all selected documents.",
+                )
+            allowed_doc_ids.append(str(doc.doc_id))
+
+        if len(allowed_doc_ids) == 1:
+            first_doc = db.query(Document).filter(
+                Document.doc_id == uuid.UUID(allowed_doc_ids[0]),
+                Document.is_deleted == False
+            ).first()
+            if first_doc:
+                document_id_db = first_doc.id
+
+    # Check if this is the first message in the chat before inserting
+    is_first_msg = (
+        db.query(Message)
+        .filter(Message.chat_id == chat.id)
+        .count() == 0
+    )
 
     # Save User Message & Update Title inside a single database transaction.
-    # This prevents partial failures from creating orphaned chats.
     try:
         user_msg = Message(chat_id=chat.id, role="user", content=request.question)
         db.add(user_msg)
 
-        if chat.title == "New Chat":
-            chat.title = request.question
+        if is_first_msg:
+            background_tasks.add_task(generate_chat_title_async, str(chat.id), request.question)
 
         chat.updated_at = func.now()
         db.commit()
@@ -546,8 +569,7 @@ def create_message(
             detail=f"Failed to record message turn: {str(e)}",
         )
 
-    # Conversational History windowing with Token Budget ceiling check.
-    # Get history prior to the current user message.
+    # Conversational History windowing
     history_messages = (
         db.query(Message)
         .filter(Message.chat_id == chat.id, Message.id != user_msg.id)
@@ -555,12 +577,10 @@ def create_message(
         .limit(6)
         .all()
     )
-    # The above list is in descending order (newest first). Let's reverse it to make it chronological.
     history_messages.reverse()
 
     chat_history_str = _format_history_block(history_messages)
     if len(chat_history_str) > 6000:
-        # Fall back to trimming to the last 4 messages.
         trimmed_messages = (
             db.query(Message)
             .filter(Message.chat_id == chat.id, Message.id != user_msg.id)
@@ -574,7 +594,7 @@ def create_message(
     # Run LegalRAG Pipeline
     try:
         result = rag.ask(
-            request.question, doc_id=allowed_doc_ids, chat_history=chat_history_str
+            request.question, selected_doc_ids=allowed_doc_ids, chat_history=chat_history_str
         )
         latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -621,7 +641,6 @@ def create_message(
         )
 
     except Exception as e:
-        # If RAG fails, user message remains committed (as per plan), but we report 500 error.
         raise HTTPException(
             status_code=500,
             detail=f"An error occurred while generating RAG response: {str(e)}",

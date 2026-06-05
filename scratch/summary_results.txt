@@ -1,0 +1,134 @@
+=== SUMMARY QUERY EVALUATION RESULTS ===
+
+Document: ArcaUsTreasuryFund (ID: 2075c7ff-016a-4246-b185-a992195e11c7)
+============================================================
+Query: 'summary of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 4, 'section': '10. Entire Agreement; Governing Law'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': 'ARCA CAPITAL MANAGEMENT, LLC'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 3, 'section': '7. Duration and Termination of this Agreement'}]
+Answer snippet: Based on the provided context, the following is a summary of the agreement:
+
+* The agreement is made between ARCA U.S. TREASURY FUND (the "Fund") and ...
+----------------------------------------
+Query: 'summarize this document'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': '1. Duties of the Blockchain Administrator'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '3. Confidentiality'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 3, 'section': '7. Duration and Termination of this Agreement'}]
+Answer snippet: Based on the provided context, the following are the key points summarized from the document:
+
+**Duties of the Blockchain Administrator:**
+
+* The Bloc...
+----------------------------------------
+Query: 'provide a summary'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '4. Compensation; Allocation of Costs and Expenses'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': '1. Duties of the Blockchain Administrator'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '3. Confidentiality'}]
+Answer snippet: Based on the provided documents, here is a summary of the key points:
+
+**Duties of the Blockchain Administrator:**
+
+* Perform development and administ...
+----------------------------------------
+Query: 'what is this document about'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': 'ARCA CAPITAL MANAGEMENT, LLC'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '3. Confidentiality'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': '1. Duties of the Blockchain Administrator'}]
+Answer snippet: Based on the provided context, this document is about a Development Agreement between ARCA U.S. TREASURY FUND, a Delaware statutory trust, and ARCA CA...
+----------------------------------------
+Query: 'give me an overview of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 4, 'section': '10. Entire Agreement; Governing Law'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': 'ARCA CAPITAL MANAGEMENT, LLC'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 3, 'section': '7. Duration and Termination of this Agreement'}]
+Answer snippet: Based on the provided context, here is an overview of the agreement:
+
+**Parties Involved:**
+
+* ARCA U.S. TREASURY FUND, a Delaware statutory trust (th...
+----------------------------------------
+Query: 'provide a comprehensive summary of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 4, 'section': '10. Entire Agreement; Governing Law'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '3. Confidentiality'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': '1. Duties of the Blockchain Administrator'}]
+Answer snippet: Based on the provided documents, the following is a comprehensive summary of the agreement:
+
+**Entire Agreement and Governing Law**
+
+* The agreement c...
+----------------------------------------
+Query: 'for the whole big document can u provide me with the summary???'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 2, 'section': '4. Compensation; Allocation of Costs and Expenses'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': '1. Duties of the Blockchain Administrator'}, {'document': 'ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf', 'page': 1, 'section': 'ARCA CAPITAL MANAGEMENT, LLC'}]
+Answer snippet: Based on the provided documents, here is a summary of the key points:
+
+**Agreement Overview**
+
+* The agreement is between ARCA U.S. TREASURY FUND (the...
+----------------------------------------
+
+Document: PelicanDeliversInc (ID: 1799460c-12d1-474a-b8a0-e09fb0743968)
+============================================================
+Query: 'summary of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.8 ENTIRE AGREEMENT AND UNDERSTANDING'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.6 OTHER DEFINITIONAL TERMS, TERMS OF CONSTRUCTION'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 14, 'section': '13. Acknowledgement by Client'}]
+Answer snippet: Based on the provided context, the following is a summary of the agreement:
+
+* The agreement is the complete and exclusive statement of agreement betw...
+----------------------------------------
+Query: 'summarize this document'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.6 OTHER DEFINITIONAL TERMS, TERMS OF CONSTRUCTION'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.8 ENTIRE AGREEMENT AND UNDERSTANDING'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 9, 'section': '9.1 CLIENT'}]
+Answer snippet: Based on the provided context, here is a summary of the document:
+
+**Document Overview:**
+
+The document appears to be a Development Agreement between ...
+----------------------------------------
+Query: 'provide a summary'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 2, 'section': '3.2 PROJECT DELIVERY AND INSTALLATION'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 3, 'section': '3.8 CLIENT ASSISTANCE'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 6, 'section': "6.3 LICENSE TO CLIENT'S INTELLECTUAL PROPERTY"}]
+Answer snippet: Based on the provided documents, here is a summary of the key points:
+
+**Project Delivery and Installation:**
+
+* Developer will provide Services, Deli...
+----------------------------------------
+Query: 'what is this document about'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 7, 'section': '6.4 CONFIDENTIALITY AND NON-DISCLOSURE'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 9, 'section': '9.1 CLIENT'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 10, 'section': '10.3 NON DISPARAGEMENT CLAUSE'}]
+Answer snippet: Based on the provided context, this document appears to be a Development Agreement between two parties: the Client and the Designer (also referred to ...
+----------------------------------------
+Query: 'give me an overview of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.8 ENTIRE AGREEMENT AND UNDERSTANDING'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 14, 'section': '13. Acknowledgement by Client'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 7, 'section': '6.4 CONFIDENTIALITY AND NON-DISCLOSURE'}]
+Answer snippet: Based on the provided documents, here is an overview of the agreement:
+
+**Key Points:**
+
+* The agreement is between two parties: PelicanDeliversInc (D...
+----------------------------------------
+Query: 'provide a comprehensive summary of the agreement'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.8 ENTIRE AGREEMENT AND UNDERSTANDING'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 14, 'section': '13. Acknowledgement by Client'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 2, 'section': '3.2 PROJECT DELIVERY AND INSTALLATION'}]
+Answer snippet: Based on the provided documents, the following is a comprehensive summary of the agreement:
+
+**Entire Agreement and Understanding:**
+* The agreement a...
+----------------------------------------
+Query: 'for the whole big document can u provide me with the summary???'
+Result Status: SUCCESS
+Citations count: 3
+Citations details: [{'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 2, 'section': '3.2 PROJECT DELIVERY AND INSTALLATION'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 7, 'section': '6.4 CONFIDENTIALITY AND NON-DISCLOSURE'}, {'document': 'PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf', 'page': 13, 'section': '12.6 OTHER DEFINITIONAL TERMS, TERMS OF CONSTRUCTION'}]
+Answer snippet: I'll provide a summary of the key points from the provided documents.
+
+**Document Overview**
+
+The documents appear to be a Development Agreement betwe...
+----------------------------------------

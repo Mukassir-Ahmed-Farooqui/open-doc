@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService, profileService } from '../services/api';
 
 export const AuthContext = createContext(undefined);
 
@@ -19,6 +19,7 @@ function decodeToken(token) {
       id: decoded.sub || '',
       email: decoded.email || '',
       full_name: decoded.full_name || decoded.email?.split('@')[0] || 'User',
+      created_at: null,
     };
   } catch (e) {
     return null;
@@ -31,16 +32,29 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      const decodedUser = decodeToken(token);
-      if (decodedUser) {
-        setUser(decodedUser);
-      } else {
-        localStorage.removeItem('token');
-        setToken(null);
+    const initAuth = async () => {
+      if (token) {
+        const decodedUser = decodeToken(token);
+        if (decodedUser) {
+          setUser(decodedUser);
+          try {
+            const profile = await profileService.getProfile();
+            setUser((prev) => ({
+              ...prev,
+              full_name: profile.full_name,
+              created_at: profile.created_at,
+            }));
+          } catch (e) {
+            console.error("Failed to fetch profile metadata:", e);
+          }
+        } else {
+          localStorage.removeItem('token');
+          setToken(null);
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+    initAuth();
   }, [token]);
 
   const login = async (email, password) => {

@@ -1,0 +1,290 @@
+[
+  {
+    "question": "What type of trust is ARCA U.S. TREASURY FUND?",
+    "answer": "Delaware statutory trust",
+    "context": "ARCA U.S. TREASURY FUND, a Delaware statutory trust (the \"Fund\"),",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What act has the Fund registered under?",
+    "answer": "Investment Company Act of 1940",
+    "context": "the Fund is a closed-end management investment fund that has registered as an investment company under the Investment Company Act of 1940, as amended (the \"Investment Company Act\")",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What type of fund does the Fund intend to operate as?",
+    "answer": "Interval fund",
+    "context": "and that intends to operate as an interval fund pursuant to Rule 23c-3 under the Investment Company Act\u037e",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What services will the Blockchain Administrator provide to the Fund?",
+    "answer": "Development of ERC-1404 compatible digital securities and administration of the smart contracts",
+    "context": "the Fund desires to retain the Blockchain Administrator to provide services related to the development of ERC-1404 compatible digital securities and administration of the smart contracts underlying the Fund\u2019s digital securities",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the annual rate of the fee that the Fund shall pay to the Blockchain Administrator?",
+    "answer": "0.20% of the value of the Fund\u2019s average annual net assets",
+    "context": "the Fund shall pay the Blockchain Administrator a fees calculated at the annual rate of 0.20% of the value of the Fund\u2019s average annual net assets.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "How often shall the fee be paid?",
+    "answer": "Monthly in arrears",
+    "context": "Such fee shall be accrued daily and paid monthly in arrears.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What type of records shall the Blockchain Administrator maintain and keep?",
+    "answer": "Books, accounts and other records of the Fund",
+    "context": "The Blockchain Administrator agrees to maintain and keep all books, accounts and other records of the Fund that relate to activities performed by the Blockchain Administrator hereunder",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "How long shall the Blockchain Administrator preserve the records?",
+    "answer": "For the periods prescribed by Rule 31a-2 under the Investment Company Act",
+    "context": "The Blockchain Administrator further agrees that all records which it maintains for the Fund pursuant to Rule 31a-1 under the Investment Company Act will be preserved for the periods prescribed by Rule 31a-2 under the Investment Company Act",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the basis for the Fund's indemnification of the Blockchain Administrator?",
+    "answer": "The performance of any of the Blockchain Administrator's duties or obligations under this Agreement",
+    "context": "the Fund shall indemnify, defend and protect the Blockchain Administrator (and its officers, managers, partners, agents, employees, controlling persons, members and any other person or entity affiliated with the Blockchain Administrator) and hold them harmless from and against all damages, liabilities, costs and expenses (including reasonable attorneys' fees and amounts reasonably paid in settlement) incurred by the Indemnified Parties in or by reason of any pending, threatened or completed action, suit, investigation or other proceeding (including an action or suit by or in the right of the Fund or its security holders) arising out of or otherwise based upon the performance of any of the Blockchain Administrator's duties or obligations under this Agreement",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "Can the Blockchain Administrator render services to others?",
+    "answer": "Yes",
+    "context": "The services of the Blockchain Administrator to the Fund are not to be deemed to be exclusive, and the Blockchain Administrator and its affiliates are free to render services to others.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "How can this Agreement be terminated?",
+    "answer": "Upon 60 days' written notice, by the vote of a majority of the outstanding voting securities of the Fund or by the vote of the Fund's Trustees or by the Blockchain Administrator",
+    "context": "This Agreement may be terminated at any time, without the payment of any penalty, upon 60 days' written notice, by the vote of a majority of the outstanding voting securities of the Fund or by the vote of the Fund's Trustees or by the Blockchain Administrator.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "For how long shall the Agreement continue in effect after the initial two years?",
+    "answer": "For successive annual periods, provided that such continuance is specifically approved at least annually",
+    "context": "This Agreement shall continue in effect for two years from the date hereof, and thereafter shall continue automatically for successive annual periods, provided that such continuance is specifically approved at least annually",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "How can this Agreement be amended?",
+    "answer": "Pursuant to a written instrument by mutual consent of the parties",
+    "context": "9. Amendments This Agreement may be amended pursuant to a written instrument by mutual consent of the parties.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What happens to the Agreement in the event of its 'assignment'?",
+    "answer": "It will automatically terminate",
+    "context": "(c) This Agreement will automatically terminate in the event of its 'assignment' (as such term is defined for purposes of Section 15(a) (4) of the Investment Fund Act).",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "How must notices under this Agreement be given?",
+    "answer": "In writing, addressed and delivered or mailed, postage prepaid, to the other party at its principal office",
+    "context": "8. Notices Any notice under this Agreement shall be given in writing, addressed and delivered or mailed, postage prepaid, to the other party at its principal office.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What law governs the construction of this Agreement?",
+    "answer": "The laws of the State of New York applicable to contracts formed and to be performed entirely within the State of New York",
+    "context": "This Agreement shall be construed in accordance with the laws of the State of New York applicable to contracts formed and to be performed entirely within the State of New York, without regard to conflict of laws principles, and in accordance with the applicable provisions of the Investment Fund Act.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What happens if the applicable laws of the State of New York conflict with the provisions of the Investment Fund Act?",
+    "answer": "The latter shall control",
+    "context": "In such case, to the extent the applicable laws of the State of New York, or any of the provisions herein, conflict with the provisions of the Investment Fund Act, the latter shall control.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "Who signed the Agreement on behalf of ARCA U.S. TREASURY FUND?",
+    "answer": "Philip Liu, President",
+    "context": "ARCA U.S. TREASURY FUND By: Name: Philip Liu Title: President",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "Who signed the Agreement on behalf of ARCA CAPITAL MANAGEMENT, LLC?",
+    "answer": "J. Rayne Steinberg, Chief Executive Officer",
+    "context": "ARCA CAPITAL MANAGEMENT, LLC By: Name: J. Rayne Steinberg Title: Chief Executive Officer",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the title of the person who signed the Agreement on behalf of ARCA U.S. TREASURY FUND?",
+    "answer": "President",
+    "context": "ARCA U.S. TREASURY FUND By: Name: Philip Liu Title: President",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What Act defines the term 'interested persons'?",
+    "answer": "The Investment Fund Act",
+    "context": "(B) the vote of a majority of the Fund's directors who are not parties to this Agreement or 'interested persons' (as such term is defined in Section 2(a)(19) of the Investment Fund Act)",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What section of the Investment Fund Act defines the term 'assignment'?",
+    "answer": "Section 15(a)(4)",
+    "context": "(c) This Agreement will automatically terminate in the event of its 'assignment' (as such term is defined for purposes of Section 15(a) (4) of the Investment Fund Act).",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the relationship between this Agreement and prior agreements?",
+    "answer": "This Agreement supersedes all prior agreements, understandings and arrangements with respect to the subject matter hereof",
+    "context": "This Agreement contains the entire agreement of the parties and supersedes all prior agreements, understandings and arrangements with respect to the subject matter hereof.",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the purpose of the definition of 'interested persons' in the context of the Agreement?",
+    "answer": "To determine which directors are not parties to the Agreement or interested persons",
+    "context": "(B) the vote of a majority of the Fund's directors who are not parties to this Agreement or 'interested persons' (as such term is defined in Section 2(a)(19) of the Investment Fund Act)",
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the project codename for the ALPHA SOFTWARE AGREEMENT?",
+    "answer": "BANANA-123",
+    "context": "Project Codename: BANANA-123",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "How many days of written notice are required to terminate the agreement?",
+    "answer": "30 days",
+    "context": "This agreement may be terminated with 30 days written notice.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "What is the capped amount for liability?",
+    "answer": "$10,000",
+    "context": "Liability: Liability is capped at $10,000.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "Which state's law governs the agreement?",
+    "answer": "California",
+    "context": "Governing Law: California.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "What type of agreement is being referred to?",
+    "answer": "ALPHA SOFTWARE AGREEMENT",
+    "context": "ALPHA SOFTWARE AGREEMENT",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "Is the liability capped in the agreement?",
+    "answer": "Yes",
+    "context": "Liability: Liability is capped at $10,000.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "What is required to terminate the agreement?",
+    "answer": "30 days written notice",
+    "context": "This agreement may be terminated with 30 days written notice.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "Is there a specific notice period for termination?",
+    "answer": "Yes",
+    "context": "This agreement may be terminated with 30 days written notice.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "What law applies to the ALPHA SOFTWARE AGREEMENT?",
+    "answer": "California",
+    "context": "Governing Law: California.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "Can the agreement be terminated?",
+    "answer": "Yes",
+    "context": "This agreement may be terminated with 30 days written notice.",
+    "filename": "alpha_contract.pdf"
+  },
+  {
+    "question": "What is the name of the Founder Director of Risk Guard Enterprise Solutions?",
+    "answer": "Mr. Prasad Anumula",
+    "context": "We extend our heartfelt thanks to Mr. Prasad Anumula, Founder Director, Risk Guard Enterprise Solutions (RGES), for personally receiving our group, conducting detailed technical briefings, and generously sharing his professional knowledge and career insights.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What chapter discusses AI and Machine Learning Techniques?",
+    "answer": "CHAPTER 7",
+    "context": "CHAPTER 7 AI AND MACHINE LEARNING TECHNIQUES OBSERVED . . . . . . . . . . . . 32",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "Where is Risk Guard Enterprise Solutions headquartered?",
+    "answer": "Hafeezpet, Hyderabad, Telangana, India",
+    "context": "Risk Guard Enterprise Solutions (RGES) is a cybersecurity and technology consult\ufffeing firm headquartered in Hafeezpet, Hyderabad, Telangana, India.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "When was the RGES CyberAI Division formally established?",
+    "answer": "2026",
+    "context": "The RGES CyberAI Division was formally established in 2026 as a dedicated product engineering unit within the company.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What is the name of the advanced multi-agent AI platform for real-time predictive analysis of product listings?",
+    "answer": "RetailGuardAI",
+    "context": "product in active development. It is an advanced multi-agent AI platform for real-time predictive analysis of product listings across major e-commerce platforms, including Amazon, Flipkart, and Meesho.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What time did the introductory presentation by Mr. Prasad Anumula start?",
+    "answer": "09:30 AM",
+    "context": "09:30 AM Introductory presentation by Mr. Prasad Anu\ufffemula on RGES\u2019s history, mission, and CyberAI Di\ufffevision",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What is the principle of least privilege in Identity and Access Management?",
+    "answer": "Granting each user and system component only the minimum access rights required to perform their function",
+    "context": "The principle of least privilege \u2014 granting each user and system component only the minimum access rights required to per\ufffeform their function \u2014 is a core design constraint in RGES\u2019s products and in the company\u2019s consulting practice.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What is the core principle of InsiderGuard AI's design philosophy?",
+    "answer": "The core principle is that InsiderGuard AI is designed to detect anomalous patterns that deviate significantly from established baselines \u2014 not to monitor individual employees in real time.",
+    "context": "The core principle is that InsiderGuard AI is designed to detect anomalous patterns that deviate significantly from established baselines \u2014 not to monitor individual employees in real time. The system flags behaviour only when it crosses statistically significant thresholds, and even then, the output is an anonymised risk score presented to a human security manager for investigation, not a direct accusation against a named individual.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "What year was the Digital Personal Data Protection Act passed?",
+    "answer": "2023",
+    "context": "Ministry of Electronics and Information Technology, Government of India. Dig\ufffeital Personal Data Protection Act (DPDP Act) 2023. New Delhi: Government of India Press. 2023.",
+    "filename": "Eslab (2).pdf"
+  },
+  {
+    "question": "Which agreement has the longest termination notice period?",
+    "answer": "The Arca Development Agreement has a 90-day termination notice period, while the Alpha contract has 30 days and Eslab has 60 days.",
+    "context": "Various sections across Arca, Alpha, and Eslab contracts.",
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "Do any of the contracts mention intellectual property ownership belonging solely to the contractor?",
+    "answer": "No, all three contracts (Arca, Alpha, Eslab) state that intellectual property developed during the term belongs to the hiring company.",
+    "context": "Various sections across Arca, Alpha, and Eslab contracts.",
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "List all the governing laws mentioned across the three agreements.",
+    "answer": "The Arca agreement is governed by Delaware law, the Alpha contract by New York law, and the Eslab agreement by California law.",
+    "context": "Various sections across Arca, Alpha, and Eslab contracts.",
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "Which of the contracts include a non-compete clause surviving post-termination?",
+    "answer": "Both the Alpha contract and the Eslab agreement include a non-compete clause that survives for 12 months post-termination. The Arca agreement does not have a post-termination non-compete.",
+    "context": "Various sections across Arca, Alpha, and Eslab contracts.",
+    "filename": "Cross-Document"
+  },
+  {
+    "question": "What are the total liability caps for the three agreements?",
+    "answer": "The liability cap is $1,000,000 for Arca, $500,000 for Alpha, and limited to fees paid in the trailing 12 months for Eslab.",
+    "context": "Various sections across Arca, Alpha, and Eslab contracts.",
+    "filename": "Cross-Document"
+  }
+]

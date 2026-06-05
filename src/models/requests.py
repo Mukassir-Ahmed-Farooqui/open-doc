@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 
 class QueryRequest(BaseModel):
@@ -7,24 +7,28 @@ class QueryRequest(BaseModel):
         ...,
         description="The question to ask the legal RAG pipeline.",
     )
-    doc_id: Optional[str] = Field(
-        None,
-        description="Optional document ID to restrict retrieval to a specific document.",
+    selected_doc_ids: List[str] = Field(
+        default_factory=list,
+        description="List of document IDs to restrict retrieval to specific documents.",
     )
 
 
 class ChatCreateRequest(BaseModel):
-    scope_type: str = Field(..., description="Scope type: 'corpus' or 'document'")
-    scope_doc_id: Optional[str] = Field(None, description="Scope document UUID string (nullable)")
+    selected_doc_ids: Optional[List[str]] = Field(
+        default_factory=list,
+        description="List of document IDs to scope this chat session to."
+    )
 
 
 class ChatRenameRequest(BaseModel):
     title: str = Field(..., description="New title of the chat session")
 
 
-class ChatScopeUpdateRequest(BaseModel):
-    scope_type: str = Field(..., description="Scope type: 'corpus' or 'document'")
-    scope_doc_id: Optional[str] = Field(None, description="Scope document UUID string (nullable)")
+class ChatDocumentsUpdateRequest(BaseModel):
+    selected_doc_ids: List[str] = Field(
+        default_factory=list,
+        description="List of document IDs to update in this chat workspace."
+    )
 
 
 class MessageCreateRequest(BaseModel):

@@ -36,6 +36,15 @@ def ingest_uploaded_pdf(file: UploadFile) -> dict:
         parsed.filename,
     )
 
+    from src.ingestion.summarizer import generate_summary_for_document
+    doc_summary = generate_summary_for_document(sections)
+    
+    for s in sections:
+        s.document_summary = doc_summary
+    for sent in sentences:
+        sent.document_summary = doc_summary
+
+
     n_sections = upsert_chunks(
         client,
         model,
@@ -58,5 +67,6 @@ def ingest_uploaded_pdf(file: UploadFile) -> dict:
         "sections": n_sections,
         "sentences": n_sentences,
         "file_size": file_size,
+        "num_pages": parsed.num_pages,
         "status": "indexed",
     }

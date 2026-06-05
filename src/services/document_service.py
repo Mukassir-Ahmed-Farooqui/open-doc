@@ -23,6 +23,7 @@ def list_documents(db: Session, user_id: uuid.UUID):
         {
             "doc_id": str(doc.doc_id),
             "filename": doc.filename,
+            "num_pages": doc.num_pages or 1,
         }
         for doc in docs
     ]

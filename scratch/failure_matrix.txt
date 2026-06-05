@@ -1,0 +1,11 @@
+=== RETRIEVAL FAILURE CONDITIONS MATRIX ===
+Scope/Doc Size            | Query Type | Query Text                                                   | Status     | Citations 
+-----------------------------------------------------------------------------------------------------------------------------
+Small (Single Doc)        | Fact       | What is the project codename or title?                       | SUCCESS    | 1         
+Small (Single Doc)        | Summary    | summarize the agreement                                      | SUCCESS    | 1         
+Medium (Single Doc)       | Fact       | What is the compensation rate for the blockchain administrator? | SUCCESS    | 3         
+Medium (Single Doc)       | Summary    | summarize the agreement                                      | SUCCESS    | 3         
+Large (Single Doc)        | Fact       | What is the designer's hourly rate or compensation?          | FAILED     | 3         
+Large (Single Doc)        | Summary    | summarize the agreement                                      | SUCCESS    | 3         
+Corpus Scope              | Fact       | What is the fee or compensation rate for the blockchain administrator? | SUCCESS    | 2         
+Corpus Scope              | Summary    | summarize the agreements in the system                       | SUCCESS    | 2         

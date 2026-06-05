@@ -28,46 +28,8 @@ def query_rag(
     start_time = time.perf_counter()
     document_id_db = None
     try:
-        if request.doc_id:
-            try:
-                target_uuid = uuid.UUID(request.doc_id)
-            except ValueError:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid doc_id format.",
-                )
-
-            # Check if document exists regardless of owner
-            doc = db.query(Document).filter(
-                Document.doc_id == target_uuid,
-                Document.is_deleted == False
-            ).first()
-
-            if not doc:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Document not found.",
-                )
-
-            # Check ownership
-            if doc.owner_id != current_user.id:
-                latency_ms = int((time.perf_counter() - start_time) * 1000)
-                audit_service.log_auth_failure(
-                    db=db,
-                    user_id=current_user.id,
-                    attempted_doc_id=request.doc_id,
-                    reason="Ownership denied. You do not own this document.",
-                    latency_ms=latency_ms,
-                    action="QUERY",
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Ownership denied. You do not own this document.",
-                )
-
-            allowed_doc_ids = str(doc.doc_id)
-            document_id_db = doc.id
-        else:
+        allowed_doc_ids = []
+        if not request.selected_doc_ids:
             # Fetch all active documents owned by this user
             user_docs = db.query(Document).filter(
                 Document.owner_id == current_user.id,
@@ -93,8 +55,55 @@ def query_rag(
 
             allowed_doc_ids = [str(d.doc_id) for d in user_docs]
             document_id_db = None
+        else:
+            for doc_id_str in request.selected_doc_ids:
+                try:
+                    target_uuid = uuid.UUID(doc_id_str)
+                except ValueError:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid doc_id format: {doc_id_str}",
+                    )
 
-        result = rag.ask(request.question, doc_id=allowed_doc_ids)
+                # Check if document exists regardless of owner
+                doc = db.query(Document).filter(
+                    Document.doc_id == target_uuid,
+                    Document.is_deleted == False
+                ).first()
+
+                if not doc:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Document {doc_id_str} not found.",
+                    )
+
+                # Check ownership
+                if doc.owner_id != current_user.id:
+                    latency_ms = int((time.perf_counter() - start_time) * 1000)
+                    audit_service.log_auth_failure(
+                        db=db,
+                        user_id=current_user.id,
+                        attempted_doc_id=doc_id_str,
+                        reason="Ownership denied. You do not own this document.",
+                        latency_ms=latency_ms,
+                        action="QUERY",
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Ownership denied. You do not own this document.",
+                    )
+
+                allowed_doc_ids.append(str(doc.doc_id))
+
+            if len(allowed_doc_ids) == 1:
+                first_doc = db.query(Document).filter(
+                    Document.doc_id == uuid.UUID(allowed_doc_ids[0]),
+                    Document.is_deleted == False
+                ).first()
+                if first_doc:
+                    document_id_db = first_doc.id
+
+        result = rag.ask(request.question, selected_doc_ids=allowed_doc_ids)
         latency_ms = int((time.perf_counter() - start_time) * 1000)
 
         # Log successful query

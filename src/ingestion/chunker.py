@@ -36,6 +36,7 @@ class SectionChunk:
     bbox: Optional[dict] = None
     section_index: int = 0
     token_count: int = 0
+    document_summary: Optional[str] = None
 
 
 @dataclass
@@ -51,6 +52,8 @@ class SentenceChunk:
     bbox: Optional[dict] = None
     sentence_index: int = 0
     token_count: int = 0
+    document_summary: Optional[str] = None
+
 
 
 def chunk_document(

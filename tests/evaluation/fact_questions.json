@@ -1,0 +1,51 @@
+[
+  {
+    "question": "What is the annual rate of the fee that the Fund shall pay to the Blockchain Administrator in the Arca agreement?",
+    "expected_answer": "0.20% of the value of the Fund’s average annual net assets",
+    "expected_section": "4. Compensation? Allocation of Costs and Expenses",
+    "expected_page": 2,
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "Who signed the development agreement on behalf of ARCA CAPITAL MANAGEMENT, LLC?",
+    "expected_answer": "J. Rayne Steinberg, Chief Executive Officer",
+    "expected_section": "ARCA CAPITAL MANAGEMENT, LLC",
+    "expected_page": 1,
+    "filename": "ArcaUsTreasuryFund_20200207_N-2_EX-99.K5_11971930_EX-99.K5_Development Agreement.pdf"
+  },
+  {
+    "question": "What is the governing law of the Pelican Delivers software development agreement?",
+    "expected_answer": "The State of Washington",
+    "expected_section": "12.1 CHOICE OF LAW AND VENUE",
+    "expected_page": 11,
+    "filename": "PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf"
+  },
+  {
+    "question": "In the Pelican Delivers agreement, which county's courts have personal jurisdiction for disputes?",
+    "expected_answer": "King County, Washington",
+    "expected_section": "12.1 CHOICE OF LAW AND VENUE",
+    "expected_page": 11,
+    "filename": "PelicanDeliversInc_20200211_S-1_EX-10.3_11975895_EX-10.3_Development Agreement2.pdf"
+  },
+  {
+    "question": "What is the project codename for the Beta consulting agreement?",
+    "expected_answer": "TIGER-456",
+    "expected_section": "BETA CONSULTING AGREEMENT",
+    "expected_page": 1,
+    "filename": "beta_contract.pdf"
+  },
+  {
+    "question": "What is the liability cap specified in the Beta consulting agreement?",
+    "expected_answer": "$500,000",
+    "expected_section": "BETA CONSULTING AGREEMENT",
+    "expected_page": 1,
+    "filename": "beta_contract.pdf"
+  },
+  {
+    "question": "What is the governing law for the Beta consulting agreement?",
+    "expected_answer": "New York",
+    "expected_section": "BETA CONSULTING AGREEMENT",
+    "expected_page": 1,
+    "filename": "beta_contract.pdf"
+  }
+]

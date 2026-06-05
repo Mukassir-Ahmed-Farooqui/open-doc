@@ -33,6 +33,13 @@ def ingest_pdf(pdf_path: Path, client, model) -> tuple[int, int]:
     print(f"  chunking {len(parsed.elements)} elements")
     sections, sentences = chunk_document(parsed.elements, parsed.doc_id, parsed.filename)
 
+    from src.ingestion.summarizer import generate_summary_for_document
+    doc_summary = generate_summary_for_document(sections)
+    for s in sections:
+        s.document_summary = doc_summary
+    for sent in sentences:
+        sent.document_summary = doc_summary
+
     print(f"  upserting {len(sections)} sections, {len(sentences)} sentences")
     n_s = upsert_chunks(client, model, sections, COLLECTION_SECTIONS)
     n_sent = upsert_chunks(client, model, sentences, COLLECTION_SENTENCES)

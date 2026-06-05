@@ -35,6 +35,7 @@ def upload_document(
             content_type=file.content_type,
             file_size_bytes=result.get("file_size"),
             chunk_count=result.get("sections", 0),
+            num_pages=result.get("num_pages", 1),
         )
         db.add(new_doc)
         db.commit()

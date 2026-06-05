@@ -82,34 +82,31 @@ export const documentService = {
 };
 
 export const queryService = {
-  async ask(question, docId) {
-    const payload = { question };
-    if (docId) {
-      payload.doc_id = docId;
-    }
+  async ask(question, selectedDocIds = []) {
+    const payload = { 
+      question,
+      selected_doc_ids: selectedDocIds,
+    };
     const response = await api.post('/api/v1/query', payload);
-    return response.data; // Expected: { answer, citations: [{ document, page, section }] }
+    return response.data; // Expected: { answer, citations: [...] }
   },
 };
 
 export const chatService = {
   async list() {
     const response = await api.get('/api/v1/chats');
-    return response.data; // Expected: [{ id, title, scope_type, scope_doc_id, created_at, updated_at }]
+    return response.data; // Expected: [{ id, title, selected_doc_ids, created_at, updated_at }]
   },
 
-  async create(scopeType, scopeDocId = null) {
-    const payload = { scope_type: scopeType };
-    if (scopeDocId) {
-      payload.scope_doc_id = scopeDocId;
-    }
+  async create(selectedDocIds = []) {
+    const payload = { selected_doc_ids: selectedDocIds };
     const response = await api.post('/api/v1/chats', payload);
     return response.data;
   },
 
   async getDetail(chatId) {
     const response = await api.get(`/api/v1/chats/${chatId}`);
-    return response.data; // Expected: { id, title, scope_type, scope_doc_id, messages: [...] }
+    return response.data; // Expected: { id, title, selected_doc_ids, messages: [...] }
   },
 
   async rename(chatId, title) {
@@ -117,10 +114,9 @@ export const chatService = {
     return response.data;
   },
 
-  async updateScope(chatId, scopeType, scopeDocId = null) {
-    const response = await api.patch(`/api/v1/chats/${chatId}/scope`, {
-      scope_type: scopeType,
-      scope_doc_id: scopeDocId,
+  async updateWorkspaceDocs(chatId, selectedDocIds = []) {
+    const response = await api.patch(`/api/v1/chats/${chatId}/documents`, {
+      selected_doc_ids: selectedDocIds,
     });
     return response.data;
   },
@@ -134,6 +130,13 @@ export const chatService = {
     const response = await api.post(`/api/v1/chats/${chatId}/messages`, { question });
     return response.data; // Expected: MessageResponse
   },
+};
+
+export const profileService = {
+  async getProfile() {
+    const response = await api.get('/api/v1/auth/me');
+    return response.data; // Expected: { id, email, full_name, created_at }
+  }
 };
 
 export const truncateFilename = (filename, maxLength = 30) => {

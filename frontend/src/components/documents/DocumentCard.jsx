@@ -2,7 +2,7 @@ import React from 'react';
 import { FileText, Trash2 } from 'lucide-react';
 import { truncateFilename } from '../../services/api';
 
-export const DocumentCard = ({ document, onDelete }) => {
+export const DocumentCard = ({ document, onDelete, selected, onToggleSelect }) => {
   const handleDeleteClick = (e) => {
     e.stopPropagation();
     const confirm = window.confirm(`Are you sure you want to delete "${document.filename}"? This will permanently delete the agreement and its vector embeddings.`);
@@ -11,11 +11,29 @@ export const DocumentCard = ({ document, onDelete }) => {
     }
   };
 
-  const truncatedName = truncateFilename(document.filename, 28);
+  const truncatedName = truncateFilename(document.filename, 22);
 
   return (
-    <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3 hover:border-slate-350 hover:shadow-xs transition-all select-none">
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+    <div 
+      onClick={onToggleSelect}
+      className={`bg-white p-3 rounded-xl border transition-all select-none flex items-center justify-between gap-3 cursor-pointer ${
+        selected 
+          ? 'border-blue-500 ring-2 ring-blue-50/50 shadow-xs' 
+          : 'border-slate-200 hover:border-slate-350 hover:shadow-xs'
+      }`}
+    >
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {/* Checkbox */}
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleSelect();
+          }}
+          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+        />
+
         <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
           <FileText className="h-4.5 w-4.5" />
         </div>
@@ -26,9 +44,15 @@ export const DocumentCard = ({ document, onDelete }) => {
           >
             {truncatedName}
           </p>
-          <p className="text-[9px] text-slate-400 font-mono truncate" title={document.doc_id}>
-            ID: {document.doc_id}
-          </p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-[9px] font-mono text-slate-400">
+              {document.num_pages} {document.num_pages === 1 ? 'Page' : 'Pages'}
+            </span>
+            <span className="h-1 w-1 rounded-full bg-slate-300" />
+            <span className="text-[9px] font-extrabold text-green-600 bg-green-50 px-1 py-0.2 rounded uppercase tracking-wider scale-90 origin-left">
+              Indexed
+            </span>
+          </div>
         </div>
       </div>
 

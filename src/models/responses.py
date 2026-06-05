@@ -33,6 +33,7 @@ class UploadResponse(BaseModel):
     filename: str
     sections: int
     sentences: int
+    num_pages: int
     status: str
 
 
@@ -48,8 +49,7 @@ class MessageResponse(BaseModel):
 class ChatResponse(BaseModel):
     id: str
     title: str
-    scope_type: str
-    scope_doc_id: Optional[str] = None
+    selected_doc_ids: List[str] = Field(default_factory=list)
     created_at: str
     updated_at: str
 
@@ -57,8 +57,7 @@ class ChatResponse(BaseModel):
 class ChatDetailResponse(BaseModel):
     id: str
     title: str
-    scope_type: str
-    scope_doc_id: Optional[str] = None
+    selected_doc_ids: List[str] = Field(default_factory=list)
     created_at: str
     updated_at: str
     messages: List[MessageResponse] = []

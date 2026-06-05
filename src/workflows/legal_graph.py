@@ -11,11 +11,14 @@ from src.storage.qdrant_store import (
 
 class LegalState(TypedDict, total=False):
     question: str
-    doc_id: Optional[str | list[str]]
+    selected_doc_ids: Optional[list[str]]
     retrieved_chunks: list[Any]
     answer: str
     citations: list[dict]
     chat_history: Optional[str]
+    retrieval_metadata: Optional[Any]
+    formatted_context: Optional[str]
+    query_type: Optional[str]
 
 # Instantiate retriever once globally to share across calls
 retriever = HierarchicalRetriever(
@@ -23,14 +26,44 @@ retriever = HierarchicalRetriever(
     get_embedder(),
 )
 
+SUMMARY_PATTERNS = [
+    "summar",
+    "overview",
+    "what is this",
+    "what is the document",
+    "about this",
+    "give me a",
+    "provide a",
+    "tell me about"
+]
+
+COMPARE_PATTERNS = [
+    "compare",
+    "difference between",
+    "vs",
+    "versus"
+]
+
+def classify_query(question: str) -> str:
+    q = question.lower()
+
+    if any(p in q for p in COMPARE_PATTERNS):
+        return "COMPARE"
+
+    if any(p in q for p in SUMMARY_PATTERNS):
+        return "SUMMARY"
+
+    return "FACT"
+
 def retrieve_node(state: LegalState) -> LegalState:
     question = state.get("question", "")
-    doc_id = state.get("doc_id", None)
+    selected_doc_ids = state.get("selected_doc_ids", None)
     
     if not question:
-        return {"retrieved_chunks": []}
+        return {"retrieved_chunks": [], "retrieval_metadata": {}, "query_type": "FACT"}
         
-    results = retriever.retrieve(question, doc_id=doc_id)
+    query_type = classify_query(question)
+    results = retriever.retrieve(question, doc_id=selected_doc_ids, query_type=query_type)
     
     safe_chunks = []
     for chunk in results.sentences:
@@ -38,7 +71,20 @@ def retrieve_node(state: LegalState) -> LegalState:
             continue
         safe_chunks.append(chunk)
         
-    return {"retrieved_chunks": safe_chunks}
+    metadata = {
+        "raw_sections": results.raw_sections,
+        "bm25_results": results.bm25_results,
+        "fused": results.fused,
+        "sections": results.sections,
+        "sentences": results.sentences,
+        "retrieved_pages": results.sections and sorted(list(set(s.page_num for s in results.sections))) or [],
+        "coverage_pct": getattr(results, "coverage_pct", 0.0),
+        "section_coverage": getattr(results, "section_coverage", ""),
+        "rewritten_query": getattr(results, "rewritten_query", None),
+    }
+        
+    return {"retrieved_chunks": safe_chunks, "retrieval_metadata": metadata, "query_type": query_type}
+
 
 def generate_node(state: LegalState) -> LegalState:
     question = state.get("question", "")
@@ -63,14 +109,20 @@ Page: {chunk.page_num}
     )
 
     answer = generate(prompt)
-    return {"answer": answer}
+    return {"answer": answer, "formatted_context": context}
+
 
 
 def citation_node(state: LegalState) -> LegalState:
+    answer = state.get("answer", "")
+    if answer.strip() == "I could not find sufficient evidence in the provided documents.":
+        return {"citations": []}
+
     retrieved_chunks = state.get("retrieved_chunks", [])
     
     if not retrieved_chunks:
         return {"citations": []}
+
         
     citations = []
     seen = set()
