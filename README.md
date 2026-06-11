@@ -3,7 +3,7 @@
 <br />
 <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/scale.svg" alt="OpenDoc" width="80" />
 
-# OpenDoc
+# open-doc
 
 ### AI-Powered Document Intelligence & Citation-Grounded Q&A Platform
 
@@ -176,10 +176,10 @@ Open your terminal and run:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/legal-rag.git
+git clone https://github.com/your-username/open-doc.git
 
 # Navigate into the project directory
-cd legal-rag
+cd open-doc
 ```
 
 ---
@@ -210,7 +210,7 @@ HF_TOKEN=your_huggingface_token_here
 # ── LangSmith Observability (optional) ──────────────
 LANGSMITH_API_KEY=your_langsmith_api_key_here
 LANGCHAIN_TRACING_V2=true
-LANGCHAIN_PROJECT=legal-rag
+LANGCHAIN_PROJECT=open-doc
 
 # ── Neon PostgreSQL ─────────────────────────────────
 DATABASE_URL=postgresql://user:password@hostname/dbname?sslmode=require
@@ -347,7 +347,7 @@ The backend exposes the following REST endpoints under the `/api/v1` prefix:
 ## 📁 Project Structure
 
 ```
-legal-rag/
+open-doc/
 ├── src/
 │   ├── api/                    # FastAPI application
 │   │   ├── main.py             # App entry point, CORS, route registration
@@ -507,7 +507,7 @@ python -m pytest tests/ -v --cov=src --cov-report=term-missing
 
 ## 🎬 Live Demo Walkthrough
 
-Follow this predefined sequence to demonstrate all capabilities of the OpenDoc platform.
+Follow this predefined sequence to demonstrate all capabilities of the open-doc platform.
 
 ### Scenario 1: User Onboarding & First Query
 
@@ -532,7 +532,7 @@ Follow this predefined sequence to demonstrate all capabilities of the OpenDoc p
    - Upload 2–3 additional documents.
    - Set the Scope Selector to "All Documents".
    - Query: *"Compare the termination provisions across my documents."*
-   - Observe that OpenDoc synthesizes an answer referencing multiple documents simultaneously, each with distinct citation references.
+   - Observe that open-doc synthesizes an answer referencing multiple documents simultaneously, each with distinct citation references.
 
 ### Scenario 4: Ownership & Tenant Isolation
 
@@ -546,7 +546,7 @@ Follow this predefined sequence to demonstrate all capabilities of the OpenDoc p
 
 ## 🔒 Multi-Tenant Security Model
 
-OpenDoc implements a defense-in-depth approach to data isolation:
+open-doc implements a defense-in-depth approach to data isolation:
 
 | Layer | Mechanism |
 |-------|-----------|
