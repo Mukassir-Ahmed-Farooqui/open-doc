@@ -507,40 +507,6 @@ python -m pytest tests/ -v --cov=src --cov-report=term-missing
 
 ## 🎬 Live Demo Walkthrough
 
-Follow this predefined sequence to demonstrate all capabilities of the open-doc platform.
-
-### Scenario 1: User Onboarding & First Query
-
-1. **Register:** Navigate to `http://localhost:5173` and create a new account with your email and password.
-2. **Login:** Sign in with your credentials — you'll receive a JWT token stored in the browser.
-3. **Empty Workspace:** Observe the empty document workspace with a prompt to upload your first document.
-
-### Scenario 2: Document Ingestion & Scoped Analysis
-
-4. **Upload:** Drag and drop a PDF contract or agreement into the Document Repository panel. Wait for the ingestion pipeline to complete (text extraction → chunking → embedding → vector storage).
-5. **Scoped Query:**
-   - Select the uploaded document in the Scope Selector dropdown.
-   - Type: *"What are the termination provisions?"*
-   - Observe the "Synthesizing response..." loading indicator with staged progress messages.
-6. **Citation Interaction:**
-   - Inspect the formatted Markdown answer with inline citation chips `[1]`, `[2]`.
-   - Click any citation chip — the interface scrolls to and highlights the corresponding source evidence card showing document name, section heading, page number, and a text preview.
-
-### Scenario 3: Cross-Document Analysis
-
-7. **Multi-Document Corpus:**
-   - Upload 2–3 additional documents.
-   - Set the Scope Selector to "All Documents".
-   - Query: *"Compare the termination provisions across my documents."*
-   - Observe that open-doc synthesizes an answer referencing multiple documents simultaneously, each with distinct citation references.
-
-### Scenario 4: Ownership & Tenant Isolation
-
-8. **Verification of Isolation:**
-   - Log out from the current session.
-   - Register or login as a **different user**.
-   - Verify that the new user's Document Repository is completely empty.
-   - User A's uploaded documents, vector embeddings, and chat history are completely invisible and inaccessible to User B.
 
 ---
 
