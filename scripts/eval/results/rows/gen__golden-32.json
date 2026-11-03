@@ -1,0 +1,23 @@
+{
+  "qid": "golden-32",
+  "kind": "pos",
+  "question": "What law applies to the ALPHA SOFTWARE AGREEMENT?",
+  "answer": "The agreement is governed by the law of **California**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 521.8,
+  "e2e_ms": 557.5,
+  "retrieval_ms": 152,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

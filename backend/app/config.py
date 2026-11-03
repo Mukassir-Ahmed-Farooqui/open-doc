@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 _INSECURE_DEV_SECRET = "dev-only-insecure-secret-change-me"  # noqa: S105 - rejected in production
 
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     app_version: str = "2.0.0"
     log_level: str = "INFO"
     log_json: bool = True
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     # ── Database ──
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/opendoc"
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
 
     # ── LLM ──
     groq_api_key: str | None = None
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
     groq_base_url: str = "https://api.groq.com/openai/v1"
     gemini_model: str = "gemini-2.0-flash"
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
@@ -135,7 +135,9 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             stripped = v.strip()
             if stripped.startswith("["):
-                return v
+                import json
+
+                return json.loads(stripped)
             return [o.strip() for o in stripped.split(",") if o.strip()]
         return v
 

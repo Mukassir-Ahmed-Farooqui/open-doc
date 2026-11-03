@@ -1,0 +1,14 @@
+{
+  "qid": "neg-1",
+  "kind": "neg",
+  "question": "What is the capital city of Australia?",
+  "answer": "I could not find sufficient evidence in the selected documents to answer this question.",
+  "abstained": true,
+  "retrieval_abstained": true,
+  "model": null,
+  "ttft_ms": 1245.3,
+  "e2e_ms": 1245.3,
+  "retrieval_ms": 1243,
+  "citations": [],
+  "answer_llm_retries": 0
+}

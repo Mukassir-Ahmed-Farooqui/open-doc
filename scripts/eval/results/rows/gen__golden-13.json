@@ -1,0 +1,21 @@
+{
+  "qid": "golden-13",
+  "kind": "pos",
+  "question": "What happens to the Agreement in the event of its 'assignment'?",
+  "answer": "The Agreement is set to **automatically terminate** if it is \u201cassigned\u201d as defined under the Investment Fund Act\u202f[ S1 ].",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2855.4,
+  "e2e_ms": 2907.7,
+  "retrieval_ms": 1188,
+  "citations": [],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": false,
+  "citation_precision": null,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

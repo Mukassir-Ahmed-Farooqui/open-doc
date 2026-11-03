@@ -79,7 +79,7 @@ Message:
     "section": "AGREEMENT > 3. Termination", "snippet": "Either party may terminate ...",
     "preview": "Either party may terminate ...", "score": 4.21
   }],
-  "latency_ms": 1830, "timestamp": "...", "model": "llama-3.3-70b-versatile"
+  "latency_ms": 1830, "timestamp": "...", "model": "openai/gpt-oss-120b"
 }
 ```
 

@@ -64,7 +64,7 @@ Every variable maps to a field in `backend/app/config.py`; `.env.example` lists 
 
 | Group | Variables (default) |
 |---|---|
-| LLM fallback | `GEMINI_API_KEY` (unset: no fallback), `GEMINI_MODEL` (`gemini-2.0-flash`), `GROQ_MODEL` (`llama-3.3-70b-versatile`), `LLM_TIMEOUT_SECONDS` (60), `LLM_MAX_TOKENS` (1024), `LLM_TEMPERATURE` (0.1), `GROQ_BASE_URL`, `GEMINI_BASE_URL` |
+| LLM fallback | `GEMINI_API_KEY` (unset: no fallback), `GEMINI_MODEL` (`gemini-2.0-flash`), `GROQ_MODEL` (`openai/gpt-oss-120b`), `LLM_TIMEOUT_SECONDS` (60), `LLM_MAX_TOKENS` (1024), `LLM_TEMPERATURE` (0.1), `GROQ_BASE_URL`, `GEMINI_BASE_URL` |
 | Memory | `RERANKER_PROVIDER` (`fastembed`; `none` on 512 MB), `WARM_MODELS_ON_STARTUP` (false), `ONNX_MEM_ARENA` (false), `ONNX_THREADS` (2), `EMBEDDING_BATCH_SIZE` (4), `EMBEDDING_CACHE_SIZE` (512) |
 | Embeddings | `EMBEDDING_PROVIDER` (`fastembed`; `gemini` needs `GEMINI_API_KEY`), `EMBEDDING_MODEL` (`BAAI/bge-small-en-v1.5`), `EMBEDDING_DIM` (384; changing it needs a migration and re-ingest), `EMBEDDING_QUERY_PREFIX` (BGE instruction), `GEMINI_EMBEDDING_MODEL`, `FASTEMBED_CACHE_DIR` (`/opt/models` in the image), `RERANKER_MODEL` |
 | Retrieval | `RETRIEVAL_CANDIDATES` (30), `RERANK_CANDIDATES` (12), `RERANK_PASSAGE_WORDS` (160), `CONTEXT_TOP_K` (6), `RRF_K` (60), `MIN_RERANK_SCORE` (-9.0), `MIN_DENSE_SCORE` (0.50), `MAX_CONTEXT_TOKENS` (3500), `HISTORY_TURNS` (6), `SUMMARY_MAX_SECTIONS` (12) |

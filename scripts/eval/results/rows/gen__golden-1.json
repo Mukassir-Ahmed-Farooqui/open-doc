@@ -1,0 +1,23 @@
+{
+  "qid": "golden-1",
+  "kind": "pos",
+  "question": "What act has the Fund registered under?",
+  "answer": "The Fund has registered as an investment company under the **Investment Company Act of 1940, as amended**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1663.4,
+  "e2e_ms": 1721.7,
+  "retrieval_ms": 1164,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

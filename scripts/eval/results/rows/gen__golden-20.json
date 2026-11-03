@@ -1,0 +1,23 @@
+{
+  "qid": "golden-20",
+  "kind": "pos",
+  "question": "What Act defines the term 'interested persons'?",
+  "answer": "The term \u201cinterested persons\u201d is defined in the **Investment Fund Act**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2397.5,
+  "e2e_ms": 2443.2,
+  "retrieval_ms": 1466,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

@@ -1,0 +1,23 @@
+{
+  "qid": "golden-0",
+  "kind": "pos",
+  "question": "What type of trust is ARCA U.S. TREASURY FUND?",
+  "answer": "ARCA\u202fU.S.\u202fTREASURY\u202fFUND is organized as a **Delaware statutory trust**\u3010S1\u3011",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 3779.7,
+  "e2e_ms": 3828.8,
+  "retrieval_ms": 3120,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

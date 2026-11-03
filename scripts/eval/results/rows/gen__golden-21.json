@@ -1,0 +1,23 @@
+{
+  "qid": "golden-21",
+  "kind": "pos",
+  "question": "What section of the Investment Fund Act defines the term 'assignment'?",
+  "answer": "The term \u201cassignment\u201d is defined for purposes of **Section\u202f15(a)(4) of the Investment Fund Act**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1738.8,
+  "e2e_ms": 1799.5,
+  "retrieval_ms": 1188,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

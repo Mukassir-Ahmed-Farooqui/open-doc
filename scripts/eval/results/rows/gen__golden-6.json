@@ -1,0 +1,23 @@
+{
+  "qid": "golden-6",
+  "kind": "pos",
+  "question": "What type of records shall the Blockchain Administrator maintain and keep?",
+  "answer": "The Blockchain Administrator must maintain and keep **all books, accounts and other records of the Fund that relate to activities performed by the Blockchain Administrator**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2466.1,
+  "e2e_ms": 2537.5,
+  "retrieval_ms": 1217,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

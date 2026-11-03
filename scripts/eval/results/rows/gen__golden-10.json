@@ -1,0 +1,23 @@
+{
+  "qid": "golden-10",
+  "kind": "pos",
+  "question": "How can this Agreement be terminated?",
+  "answer": "The Agreement can be ended in the following ways:\n\n- **By written notice** \u2013 It may be terminated at any time, without penalty, upon\u202f60\u202fdays\u2019 written notice **if** the termination is approved **by**  \n  - a majority of the Fund\u2019s outstanding voting securities, **or**  \n  - the Fund\u2019s Trustees, **or**  \n  - the Blockchain Administrator.\u202f[S1]\n\n- **Automatically** \u2013 The Agreement will automatically terminate if an \u201cassignment\u201d occurs as defined in the Investment Fund Act.\u202f[S1]",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2928.0,
+  "e2e_ms": 3158.5,
+  "retrieval_ms": 2043,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

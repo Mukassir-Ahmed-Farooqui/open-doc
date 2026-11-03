@@ -1,0 +1,23 @@
+{
+  "qid": "golden-28",
+  "kind": "pos",
+  "question": "What type of agreement is being referred to?",
+  "answer": "The document refers to a **software agreement** \u2013 specifically the \u201cALPHA SOFTWARE AGREEMENT\u201d\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1484.9,
+  "e2e_ms": 1544.0,
+  "retrieval_ms": 445,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": false,
+  "cited_gold": false,
+  "citation_precision": 0.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

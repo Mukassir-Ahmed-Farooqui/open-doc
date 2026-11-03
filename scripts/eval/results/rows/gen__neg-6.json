@@ -1,0 +1,14 @@
+{
+  "qid": "neg-6",
+  "kind": "neg",
+  "question": "What is the airline baggage allowance for international flights?",
+  "answer": "I could not find sufficient evidence in the selected documents to answer this question.",
+  "abstained": true,
+  "retrieval_abstained": true,
+  "model": null,
+  "ttft_ms": 1281.0,
+  "e2e_ms": 1281.0,
+  "retrieval_ms": 1278,
+  "citations": [],
+  "answer_llm_retries": 0
+}

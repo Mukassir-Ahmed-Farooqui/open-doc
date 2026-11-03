@@ -29,6 +29,16 @@ def test_cors_origins_from_comma_list() -> None:
     assert s.cors_origins == ["https://a.app", "https://b.app"]
 
 
+def test_cors_origins_from_env_plain_and_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Env values are what .env.example / docker-compose use; pydantic-settings used to JSON-decode them.
+    monkeypatch.setenv("CORS_ORIGINS", "http://localhost:5173")
+    assert Settings().cors_origins == ["http://localhost:5173"]
+    monkeypatch.setenv("CORS_ORIGINS", "https://a.app,https://b.app")
+    assert Settings().cors_origins == ["https://a.app", "https://b.app"]
+    monkeypatch.setenv("CORS_ORIGINS", '["https://a.app", "https://b.app"]')
+    assert Settings().cors_origins == ["https://a.app", "https://b.app"]
+
+
 def test_production_requires_real_secret() -> None:
     with pytest.raises(ValueError, match="JWT_SECRET_KEY"):
         Settings(app_env="production", jwt_secret_key="short")

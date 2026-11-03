@@ -1,0 +1,14 @@
+{
+  "qid": "neg-4",
+  "kind": "neg",
+  "question": "Who won the 2018 FIFA World Cup?",
+  "answer": "I could not find sufficient evidence in the selected documents to answer this question.",
+  "abstained": true,
+  "retrieval_abstained": true,
+  "model": null,
+  "ttft_ms": 2001.0,
+  "e2e_ms": 2001.0,
+  "retrieval_ms": 1996,
+  "citations": [],
+  "answer_llm_retries": 0
+}

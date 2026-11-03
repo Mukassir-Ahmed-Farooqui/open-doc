@@ -1,0 +1,23 @@
+{
+  "qid": "fact-3",
+  "kind": "pos",
+  "question": "In the Pelican Delivers agreement, which county's courts have personal jurisdiction for disputes?",
+  "answer": "The agreement provides that the Parties consent to the personal jurisdiction of the state and federal courts located in **King County, Washington**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2022.8,
+  "e2e_ms": 2079.8,
+  "retrieval_ms": 1541,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

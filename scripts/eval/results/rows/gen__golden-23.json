@@ -1,0 +1,23 @@
+{
+  "qid": "golden-23",
+  "kind": "pos",
+  "question": "What is the purpose of the definition of 'interested persons' in the context of the Agreement?",
+  "answer": "The agreement uses the term **\u201cinterested persons\u201d** to identify directors who may have a conflict of interest and therefore must be excluded from the vote that approves the Agreement\u2019s automatic continuance.\u202fThe continuation can occur only if it is approved by (A) the Board **or** a majority of the Fund\u2019s voting securities **and** (B) a majority of the Fund\u2019s directors **who are not parties to this Agreement or \u201cinterested persons\u201d** as defined in the Investment Fund Act\u202f[S2].  \n\nThus, the definition serves to ensure that only independent directors\u2014those without a direct interest in the Agreement\u2014participate in the approval, complying with the Investment Fund Act\u2019s conflict\u2011of\u2011interest requirements.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2356.0,
+  "e2e_ms": 2761.2,
+  "retrieval_ms": 1216,
+  "citations": [
+    "S2"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}
