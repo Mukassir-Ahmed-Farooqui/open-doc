@@ -1,8 +1,8 @@
 import type { Citation } from "./api/schemas";
 import { INSUFFICIENT_EVIDENCE } from "./config";
 
-/** Matches a citation group like [S1], [S1, S3] or [S2;S4]. */
-const GROUP_RE = /\[(S\d+(?:\s*[,;]\s*S\d+)*)\]/g;
+/** Matches a citation group like [S1], [S1, S3] or [S2;S4], also the fullwidth 【S1】 some models emit. */
+const GROUP_RE = /[[【](S\d+(?:\s*[,;，]\s*S\d+)*)[\]】]/g;
 
 export type Segment = { type: "text"; text: string } | { type: "cite"; ids: string[] };
 
@@ -13,7 +13,7 @@ export function parseCitationMarkers(text: string): Segment[] {
   for (const m of text.matchAll(GROUP_RE)) {
     const idx = m.index ?? 0;
     if (idx > last) out.push({ type: "text", text: text.slice(last, idx) });
-    out.push({ type: "cite", ids: m[1].split(/\s*[,;]\s*/) });
+    out.push({ type: "cite", ids: m[1].split(/\s*[,;，]\s*/) });
     last = idx + m[0].length;
   }
   if (last < text.length) out.push({ type: "text", text: text.slice(last) });
@@ -41,7 +41,7 @@ export function linkifyCitations(markdown: string): string {
         ? part
         : part.replace(GROUP_RE, (_m, group: string) =>
             group
-              .split(/\s*[,;]\s*/)
+              .split(/\s*[,;，]\s*/)
               .map((id) => `[${id}](${CITE_HREF_PREFIX}${id})`)
               .join(""),
           ),

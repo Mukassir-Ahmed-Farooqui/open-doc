@@ -86,3 +86,10 @@ describe("viewerHref", () => {
     expect(viewerHref({ doc_id: "d", page: 0, snippet: "" })).toBe("/documents/d?page=1");
   });
 });
+
+describe("fullwidth citation markers", () => {
+  it("parses 【S1】 and 【S1, S2】 like [S1]", () => {
+    expect(citedIds("A 【S1】 and B 【S2, S3】.")).toEqual(["S1", "S2", "S3"]);
+    expect(linkifyCitations("x 【S1】")).toBe("x [S1](#cite-S1)");
+  });
+});
