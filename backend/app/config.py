@@ -11,6 +11,28 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _INSECURE_DEV_SECRET = "dev-only-insecure-secret-change-me"  # noqa: S105 - rejected in production
 
 
+def _asyncpg_query(url: str) -> str:
+    """Translate libpq query options that asyncpg rejects (Neon URLs carry both by default).
+
+    ``sslmode=require`` becomes ``ssl=require`` (asyncpg's equivalent); ``channel_binding`` has no
+    asyncpg counterpart and is dropped. Other parameters are left untouched.
+    """
+    if not url.startswith("postgresql+asyncpg://") or "?" not in url:
+        return url
+    base, query = url.split("?", 1)
+    params: list[str] = []
+    for part in query.split("&"):
+        key, _, value = part.partition("=")
+        if key == "channel_binding" or not part:
+            continue
+        if key == "sslmode":
+            if any(p.startswith("ssl=") for p in query.split("&")):
+                continue
+            part = f"ssl={value}"
+        params.append(part)
+    return f"{base}?{'&'.join(params)}" if params else base
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -123,7 +145,7 @@ class Settings(BaseSettings):
             v = "postgresql://" + v[len("postgres://") :]
         if v.startswith("postgresql://"):
             v = "postgresql+asyncpg://" + v[len("postgresql://") :]
-        return v
+        return _asyncpg_query(v)
 
     @model_validator(mode="after")
     def _production_guards(self) -> Settings:
