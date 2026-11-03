@@ -1,0 +1,13 @@
+[project]
+name = "opendoc-backend"
+version = "2.0.0"
+description = "OpenDoc API: async FastAPI document Q&A with pgvector hybrid RAG"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+filterwarnings = ["ignore::DeprecationWarning:pymupdf.*", "ignore::DeprecationWarning:swig.*"]
+markers = ["db: needs a Postgres database with pgvector"]

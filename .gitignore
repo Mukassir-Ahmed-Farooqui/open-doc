@@ -29,3 +29,13 @@ frontend/node_modules/
 # Tasks & Old Artifacts
 task.md
 status.md
+# Eval corpus (downloaded by scripts/eval/fetch_corpus.py)
+tests/fixtures/cuad/
+scripts/eval/results/*.raw.json
+!.env.example
+
+# Eval scratch storage
+scripts/eval/results/.objects/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
