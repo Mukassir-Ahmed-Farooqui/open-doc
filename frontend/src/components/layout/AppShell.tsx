@@ -32,7 +32,7 @@ export function AppShell() {
       <RD.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
         <RD.Portal>
           <RD.Overlay className="fixed inset-0 z-40 bg-black/40 animate-fade-in md:hidden" />
-          <RD.Content className="fixed inset-y-0 left-0 z-50 w-[min(18rem,85vw)] border-r border-line shadow-lg animate-slide-in-left focus:outline-none md:hidden">
+          <RD.Content className="fixed inset-y-0 left-0 z-50 w-[min(18rem,85vw)] border-r border-line bg-surface shadow-lg animate-slide-in-left focus:outline-none md:hidden">
             <RD.Title className="sr-only">Navigation</RD.Title>
             <RD.Description className="sr-only">Main navigation and conversation history</RD.Description>
             <Sidebar

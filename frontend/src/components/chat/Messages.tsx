@@ -85,7 +85,7 @@ export function AssistantMessage({
         )}
         {(message.model || message.latency_ms) && (
           <span className="ml-1 text-2xs">
-            {[message.model, message.latency_ms ? `${(message.latency_ms / 1000).toFixed(1)}s` : null].filter(Boolean).join(" · ")}
+            {[message.model, message.latency_ms ? (message.latency_ms < 1000 ? `${message.latency_ms} ms` : `${(message.latency_ms / 1000).toFixed(1)}s`) : null].filter(Boolean).join(" · ")}
           </span>
         )}
       </div>
