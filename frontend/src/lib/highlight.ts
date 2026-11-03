@@ -10,12 +10,14 @@ export function normalizeText(s: string): string {
 
 /**
  * Should a PDF text-layer item be highlighted for this cited snippet? True when the item's
- * normalised text (at least 4 chars) appears inside the normalised snippet.
+ * normalised text (at least 4 chars) appears inside the snippet (snippet spans many items),
+ * or a short snippet (at least 12 chars) appears inside one long item (a whole line).
  */
 export function itemInSnippet(itemText: string, normalizedSnippet: string): boolean {
   const t = normalizeText(itemText);
   if (t.length < 4 || !normalizedSnippet) return false;
-  return normalizedSnippet.includes(t);
+  if (normalizedSnippet.includes(t)) return true;
+  return normalizedSnippet.length >= 12 && t.includes(normalizedSnippet);
 }
 
 /**

@@ -128,7 +128,7 @@ export function LibraryPage() {
             }
           />
         ) : (
-          <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface shadow-xs">
+          <ul aria-label="Documents" className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface shadow-xs">
             {filtered.map((d) => (
               <DocumentRow key={d.doc_id} doc={d} />
             ))}

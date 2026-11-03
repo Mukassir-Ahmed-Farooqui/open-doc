@@ -11,6 +11,11 @@ describe("highlight helpers", () => {
     expect(itemInSnippet("governing law", n)).toBe(false);
     expect(itemInSnippet("on", n)).toBe(false); // too short to be meaningful
   });
+  it("matches a short snippet inside one long text item", () => {
+    const n = normalizeText("monthly service fee");
+    expect(itemInSnippet("The Customer shall pay the monthly service fee of EUR 18,500 in advance.", n)).toBe(true);
+    expect(itemInSnippet("The Customer shall pay", normalizeText("fee"))).toBe(false);
+  });
   it("finds a snippet in text despite re-flowed whitespace", () => {
     const text = "Intro.\n\nEither party may\nterminate on 90 days' notice.";
     const r = findSnippet(text, "Either party may terminate on 90 days' notice.");
