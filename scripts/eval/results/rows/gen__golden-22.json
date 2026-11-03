@@ -1,0 +1,23 @@
+{
+  "qid": "golden-22",
+  "kind": "pos",
+  "question": "What is the relationship between this Agreement and prior agreements?",
+  "answer": "The Agreement is the parties\u2019 **entire agreement** and **supersedes all prior agreements, understandings and arrangements** concerning its subject matter\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1892.8,
+  "e2e_ms": 1962.6,
+  "retrieval_ms": 943,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

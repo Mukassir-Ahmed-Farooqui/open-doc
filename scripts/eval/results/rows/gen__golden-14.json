@@ -1,0 +1,23 @@
+{
+  "qid": "golden-14",
+  "kind": "pos",
+  "question": "How must notices under this Agreement be given?",
+  "answer": "Notices must be **in writing**, addressed to the other party\u2019s principal office, and **delivered or mailed with postage prepaid**.\u202f[S1]",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2377.0,
+  "e2e_ms": 2449.4,
+  "retrieval_ms": 1479,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

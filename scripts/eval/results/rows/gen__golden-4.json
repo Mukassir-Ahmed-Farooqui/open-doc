@@ -1,0 +1,23 @@
+{
+  "qid": "golden-4",
+  "kind": "pos",
+  "question": "What is the annual rate of the fee that the Fund shall pay to the Blockchain Administrator?",
+  "answer": "The Fund shall pay the Blockchain Administrator a fee calculated at an **annual rate of\u202f0.20\u202f%** of the value of the Fund\u2019s average annual net assets\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2650.7,
+  "e2e_ms": 2734.4,
+  "retrieval_ms": 2059,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

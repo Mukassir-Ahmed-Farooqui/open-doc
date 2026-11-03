@@ -1,0 +1,14 @@
+{
+  "qid": "neg-0",
+  "kind": "neg",
+  "question": "What is the warranty period for the espresso machine?",
+  "answer": "I could not find sufficient evidence in the selected documents to answer this question.",
+  "abstained": true,
+  "retrieval_abstained": true,
+  "model": null,
+  "ttft_ms": 2129.8,
+  "e2e_ms": 2129.9,
+  "retrieval_ms": 2124,
+  "citations": [],
+  "answer_llm_retries": 0
+}

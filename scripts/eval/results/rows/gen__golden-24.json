@@ -1,0 +1,23 @@
+{
+  "qid": "golden-24",
+  "kind": "pos",
+  "question": "What is the project codename for the ALPHA SOFTWARE AGREEMENT?",
+  "answer": "The project codename for the ALPHA SOFTWARE AGREEMENT is **BANANA-123**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 621.7,
+  "e2e_ms": 671.5,
+  "retrieval_ms": 92,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

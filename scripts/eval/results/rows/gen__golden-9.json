@@ -1,0 +1,23 @@
+{
+  "qid": "golden-9",
+  "kind": "pos",
+  "question": "Can the Blockchain Administrator render services to others?",
+  "answer": "Yes. The agreement states that the services of the Blockchain Administrator to the Fund are not exclusive, and the Blockchain Administrator and its affiliates are free to render services to others\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 4707.8,
+  "e2e_ms": 4782.8,
+  "retrieval_ms": 2868,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

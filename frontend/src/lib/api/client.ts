@@ -1,0 +1,242 @@
+import { z } from "zod";
+import { API_BASE, API_ORIGIN } from "../config";
+import { ApiError, errorFromResponse, networkError } from "./errors";
+import {
+  ChatDetailSchema,
+  ChatSchema,
+  DeleteResponseSchema,
+  DocumentSchema,
+  HealthSchema,
+  ReadySchema,
+  RegisterResponseSchema,
+  StatusResponseSchema,
+  SummaryResponseSchema,
+  TokenResponseSchema,
+  UploadResponseSchema,
+  UserSchema,
+  type SummaryStyle,
+} from "./schemas";
+
+export interface ApiClientOptions {
+  baseUrl?: string;
+  origin?: string;
+  getToken?: () => string | null;
+  onUnauthorized?: () => void;
+  fetch?: typeof fetch;
+}
+
+type Method = "GET" | "POST" | "PATCH" | "DELETE";
+
+interface RequestOptions {
+  body?: unknown;
+  signal?: AbortSignal;
+  auth?: boolean;
+  /** Return 503 bodies instead of throwing (readiness probe). */
+  allowStatus?: number[];
+}
+
+/**
+ * Typed client for the OpenDoc v1 API. Every JSON response is validated with zod, so a
+ * contract drift surfaces as a clear error rather than undefined fields deep in the UI.
+ */
+export class ApiClient {
+  readonly baseUrl: string;
+  readonly origin: string;
+  private readonly getToken: () => string | null;
+  private readonly onUnauthorized?: () => void;
+  private readonly fetchImpl: typeof fetch;
+
+  constructor(opts: ApiClientOptions = {}) {
+    this.baseUrl = opts.baseUrl ?? API_BASE;
+    this.origin = opts.origin ?? API_ORIGIN;
+    this.getToken = opts.getToken ?? (() => null);
+    this.onUnauthorized = opts.onUnauthorized;
+    this.fetchImpl = opts.fetch ?? ((...args) => globalThis.fetch(...args));
+  }
+
+  authHeaders(): Record<string, string> {
+    const token = this.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  /** Low-level fetch that throws ApiError for non-2xx and handles 401. */
+  async raw(url: string, init: RequestInit & { auth?: boolean; allowStatus?: number[] } = {}): Promise<Response> {
+    const { auth = true, allowStatus = [], ...rest } = init;
+    const headers = new Headers(rest.headers);
+    if (auth) for (const [k, v] of Object.entries(this.authHeaders())) headers.set(k, v);
+    let res: Response;
+    try {
+      res = await this.fetchImpl(url, { ...rest, headers });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      throw networkError(err);
+    }
+    if (!res.ok && !allowStatus.includes(res.status)) {
+      const text = await res.text().catch(() => "");
+      const error = errorFromResponse(res.status, res.headers, text);
+      if (res.status === 401 && auth) this.onUnauthorized?.();
+      throw error;
+    }
+    return res;
+  }
+
+  private async json<S extends z.ZodType>(
+    method: Method,
+    path: string,
+    schema: S,
+    opts: RequestOptions = {},
+  ): Promise<z.infer<S>> {
+    const headers: Record<string, string> = { Accept: "application/json" };
+    let body: BodyInit | undefined;
+    if (opts.body instanceof FormData) body = opts.body;
+    else if (opts.body !== undefined) {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(opts.body);
+    }
+    const url = path.startsWith("http") || path.startsWith("/health") || path.startsWith("/ready")
+      ? (path.startsWith("http") ? path : `${this.origin}${path}`)
+      : `${this.baseUrl}${path}`;
+    const res = await this.raw(url, {
+      method,
+      headers,
+      body,
+      signal: opts.signal,
+      auth: opts.auth,
+      allowStatus: opts.allowStatus,
+    });
+    const text = await res.text();
+    let data: unknown = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      throw new ApiError({ status: res.status, code: "invalid_response", message: "The API returned invalid JSON." });
+    }
+    const parsed = schema.safeParse(data);
+    if (!parsed.success) {
+      throw new ApiError({
+        status: res.status,
+        code: "invalid_response",
+        message: `Unexpected response from ${method} ${path}`,
+        details: parsed.error.issues,
+      });
+    }
+    return parsed.data;
+  }
+
+  /* ── probes ── */
+  health(signal?: AbortSignal) {
+    return this.json("GET", "/health", HealthSchema, { auth: false, signal });
+  }
+  ready(signal?: AbortSignal) {
+    return this.json("GET", "/ready", ReadySchema, { auth: false, signal, allowStatus: [503] });
+  }
+
+  /* ── auth ── */
+  register(body: { email: string; password: string; full_name?: string }) {
+    return this.json("POST", "/auth/register", RegisterResponseSchema, { body, auth: false });
+  }
+  login(body: { email: string; password: string }) {
+    return this.json("POST", "/auth/login", TokenResponseSchema, { body, auth: false });
+  }
+  me(signal?: AbortSignal) {
+    return this.json("GET", "/auth/me", UserSchema, { signal });
+  }
+  updateMe(body: { full_name: string | null }) {
+    return this.json("PATCH", "/auth/me", UserSchema, { body });
+  }
+
+  /* ── documents ── */
+  listDocuments(signal?: AbortSignal) {
+    return this.json("GET", "/documents", z.array(DocumentSchema), { signal });
+  }
+  getDocument(docId: string, signal?: AbortSignal) {
+    return this.json("GET", `/documents/${encodeURIComponent(docId)}`, DocumentSchema, { signal });
+  }
+  deleteDocument(docId: string) {
+    return this.json("DELETE", `/documents/${encodeURIComponent(docId)}`, DeleteResponseSchema);
+  }
+  documentSummary(docId: string, signal?: AbortSignal) {
+    return this.json("GET", `/documents/${encodeURIComponent(docId)}/summary`, SummaryResponseSchema, { signal });
+  }
+  async downloadDocument(docId: string, signal?: AbortSignal): Promise<Blob> {
+    const res = await this.raw(`${this.baseUrl}/documents/${encodeURIComponent(docId)}/download`, { signal });
+    return res.blob();
+  }
+  uploadUrl() {
+    return `${this.baseUrl}/upload`;
+  }
+  /**
+   * Upload one file. Uses XHR so the caller gets byte-level upload progress (fetch has none).
+   * Resolves with the document (202 queued, or 200 + duplicate).
+   */
+  uploadDocument(
+    file: File,
+    opts: { onProgress?: (fraction: number) => void; signal?: AbortSignal } = {},
+  ): Promise<z.infer<typeof UploadResponseSchema>> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", this.uploadUrl());
+      for (const [k, v] of Object.entries(this.authHeaders())) xhr.setRequestHeader(k, v);
+      xhr.setRequestHeader("Accept", "application/json");
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) opts.onProgress?.(e.loaded / e.total);
+      };
+      xhr.onerror = () => reject(networkError(new Error("upload failed")));
+      xhr.onabort = () => reject(new DOMException("Upload cancelled", "AbortError"));
+      xhr.onload = () => {
+        const headers = new Headers();
+        for (const line of xhr.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
+          const idx = line.indexOf(":");
+          if (idx > 0) headers.append(line.slice(0, idx).trim(), line.slice(idx + 1).trim());
+        }
+        if (xhr.status < 200 || xhr.status >= 300) {
+          if (xhr.status === 401) this.onUnauthorized?.();
+          reject(errorFromResponse(xhr.status, headers, xhr.responseText));
+          return;
+        }
+        try {
+          const parsed = UploadResponseSchema.safeParse(JSON.parse(xhr.responseText));
+          if (!parsed.success) throw new Error("invalid");
+          resolve(parsed.data);
+        } catch {
+          reject(new ApiError({ status: xhr.status, code: "invalid_response", message: "Unexpected upload response." }));
+        }
+      };
+      opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+      const form = new FormData();
+      form.append("file", file, file.name);
+      xhr.send(form);
+    });
+  }
+
+  /* ── chats ── */
+  listChats(signal?: AbortSignal) {
+    return this.json("GET", "/chats", z.array(ChatSchema), { signal });
+  }
+  createChat(selectedDocIds: string[]) {
+    return this.json("POST", "/chats", ChatSchema, { body: { selected_doc_ids: selectedDocIds } });
+  }
+  getChat(chatId: string, signal?: AbortSignal) {
+    return this.json("GET", `/chats/${encodeURIComponent(chatId)}`, ChatDetailSchema, { signal });
+  }
+  renameChat(chatId: string, title: string) {
+    return this.json("PATCH", `/chats/${encodeURIComponent(chatId)}`, ChatSchema, { body: { title } });
+  }
+  setChatDocuments(chatId: string, selectedDocIds: string[]) {
+    return this.json("PATCH", `/chats/${encodeURIComponent(chatId)}/documents`, ChatSchema, {
+      body: { selected_doc_ids: selectedDocIds },
+    });
+  }
+  deleteChat(chatId: string) {
+    return this.json("DELETE", `/chats/${encodeURIComponent(chatId)}`, StatusResponseSchema);
+  }
+  /** Opens the SSE stream; the caller parses the body with readSSE(). */
+  openMessageStream(chatId: string, question: string, summaryStyle: SummaryStyle, signal?: AbortSignal) {
+    return this.raw(`${this.baseUrl}/chats/${encodeURIComponent(chatId)}/messages/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: JSON.stringify({ question, summary_style: summaryStyle }),
+      signal,
+    });
+  }
+}

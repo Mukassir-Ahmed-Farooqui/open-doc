@@ -1,0 +1,23 @@
+{
+  "qid": "golden-2",
+  "kind": "pos",
+  "question": "What type of fund does the Fund intend to operate as?",
+  "answer": "The Fund intends to operate as an **interval fund** under Rule\u202f23c\u20113 of the Investment Company Act\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1929.1,
+  "e2e_ms": 1982.1,
+  "retrieval_ms": 1404,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

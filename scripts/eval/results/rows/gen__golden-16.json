@@ -1,0 +1,23 @@
+{
+  "qid": "golden-16",
+  "kind": "pos",
+  "question": "What happens if the applicable laws of the State of New York conflict with the provisions of the Investment Fund Act?",
+  "answer": "If any provision of New\u202fYork law (or any part of this Agreement) conflicts with the Investment Fund Act, the Investment Fund Act will control.\u202f[S1]",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2307.3,
+  "e2e_ms": 2378.9,
+  "retrieval_ms": 1905,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

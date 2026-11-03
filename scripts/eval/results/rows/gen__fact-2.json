@@ -1,0 +1,17 @@
+{
+  "qid": "fact-2",
+  "kind": "pos",
+  "question": "What is the governing law of the Pelican Delivers software development agreement?",
+  "answer": "I could not find sufficient evidence in the selected documents to answer this question.",
+  "abstained": true,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 3147.0,
+  "e2e_ms": 3179.1,
+  "retrieval_ms": 1625,
+  "citations": [],
+  "answer_llm_retries": 0,
+  "gold_in_context": false,
+  "cited_gold": false,
+  "citation_precision": null
+}

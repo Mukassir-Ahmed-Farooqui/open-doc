@@ -1,0 +1,23 @@
+{
+  "qid": "golden-30",
+  "kind": "pos",
+  "question": "What is required to terminate the agreement?",
+  "answer": "The agreement can be terminated by providing **30\u202fdays written notice**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2034.8,
+  "e2e_ms": 2075.1,
+  "retrieval_ms": 280,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

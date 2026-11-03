@@ -1,0 +1,23 @@
+{
+  "qid": "fact-0",
+  "kind": "pos",
+  "question": "What is the annual rate of the fee that the Fund shall pay to the Blockchain Administrator in the Arca agreement?",
+  "answer": "The Fund shall pay the Blockchain Administrator a fee calculated at an **annual rate of\u202f0.20\u202f%** of the value of the Fund\u2019s average annual net assets\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1969.5,
+  "e2e_ms": 2051.5,
+  "retrieval_ms": 1440,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

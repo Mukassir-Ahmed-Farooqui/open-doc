@@ -1,0 +1,23 @@
+{
+  "qid": "golden-17",
+  "kind": "pos",
+  "question": "Who signed the Agreement on behalf of ARCA U.S. TREASURY FUND?",
+  "answer": "The Agreement was signed for **ARCA\u202fU.S.\u202fTREASURY\u202fFUND** by **Philip\u202fLiu**, President of the Fund\u3010S2\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1756.7,
+  "e2e_ms": 1863.5,
+  "retrieval_ms": 1313,
+  "citations": [
+    "S2"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

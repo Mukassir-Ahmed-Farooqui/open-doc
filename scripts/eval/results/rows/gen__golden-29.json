@@ -1,0 +1,23 @@
+{
+  "qid": "golden-29",
+  "kind": "pos",
+  "question": "Is the liability capped in the agreement?",
+  "answer": "Yes. The agreement caps liability at **$10,000**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 642.4,
+  "e2e_ms": 680.0,
+  "retrieval_ms": 235,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

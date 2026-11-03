@@ -1,0 +1,23 @@
+{
+  "qid": "fact-1",
+  "kind": "pos",
+  "question": "Who signed the development agreement on behalf of ARCA CAPITAL MANAGEMENT, LLC?",
+  "answer": "The development agreement was signed for **ARCA\u202fCAPITAL\u202fMANAGEMENT,\u202fLLC** by **J.\u202fRayne\u202fSteinberg**, Chief Executive Officer\u3010S2\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1692.6,
+  "e2e_ms": 1782.6,
+  "retrieval_ms": 1193,
+  "citations": [
+    "S2"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

@@ -1,0 +1,23 @@
+{
+  "qid": "golden-7",
+  "kind": "pos",
+  "question": "How long shall the Blockchain Administrator preserve the records?",
+  "answer": "The Blockchain Administrator must keep all Fund records **for the periods prescribed by Rule\u202f31a\u20112 under the Investment Company Act** (unless the records are surrendered earlier as provided)\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1911.7,
+  "e2e_ms": 1995.8,
+  "retrieval_ms": 1186,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

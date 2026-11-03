@@ -1,0 +1,23 @@
+{
+  "qid": "golden-31",
+  "kind": "pos",
+  "question": "Is there a specific notice period for termination?",
+  "answer": "Yes. The agreement may be terminated with **30\u202fdays written notice**\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 468.8,
+  "e2e_ms": 510.6,
+  "retrieval_ms": 129,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

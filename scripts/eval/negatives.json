@@ -1,0 +1,10 @@
+[
+  {"question": "What is the warranty period for the espresso machine?", "note": "authored for abstention calibration: no espresso machine in the corpus"},
+  {"question": "What is the capital city of Australia?", "note": "authored: general knowledge, not in documents"},
+  {"question": "How many vacation days do employees get per year?", "note": "authored: no employee handbook in corpus"},
+  {"question": "What is the recommended dosage of ibuprofen for adults?", "note": "authored: medical, not in documents"},
+  {"question": "Who won the 2018 FIFA World Cup?", "note": "authored: general knowledge"},
+  {"question": "What is the monthly rent for the office space on Main Street?", "note": "authored: no lease in corpus"},
+  {"question": "What is the airline baggage allowance for international flights?", "note": "authored: not in documents"},
+  {"question": "Which programming language is the mobile app written in?", "note": "authored: not stated in corpus"}
+]

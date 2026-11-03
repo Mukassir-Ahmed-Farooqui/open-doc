@@ -1,0 +1,25 @@
+{
+  "qid": "golden-11",
+  "kind": "pos",
+  "question": "For how long shall the Agreement continue in effect after the initial two years?",
+  "answer": "The Agreement is set to run for an initial two\u2011year term, and **after that it will automatically continue for successive one\u2011year periods**, so long as each additional year is specifically approved at least annually by the required parties (the Board and a majority of the Fund\u2019s directors who are not parties to the Agreement)\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1944.6,
+  "e2e_ms": 2086.9,
+  "retrieval_ms": 1380,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": false,
+  "correct": true,
+  "unsupported": [
+    "specifically approved at least annually by the required parties (the Board and a majority of the Fund\u2019s directors who are not parties to the Agreement)"
+  ],
+  "judge_model": "openai/gpt-oss-120b"
+}

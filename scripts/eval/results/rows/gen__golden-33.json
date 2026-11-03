@@ -1,0 +1,23 @@
+{
+  "qid": "golden-33",
+  "kind": "pos",
+  "question": "Can the agreement be terminated?",
+  "answer": "Yes. The agreement may be terminated with\u202f30\u202fdays written notice\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 508.8,
+  "e2e_ms": 548.9,
+  "retrieval_ms": 169,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

@@ -1,0 +1,23 @@
+{
+  "qid": "golden-25",
+  "kind": "pos",
+  "question": "How many days of written notice are required to terminate the agreement?",
+  "answer": "The agreement may be terminated with **30 days** written notice\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 331.0,
+  "e2e_ms": 366.1,
+  "retrieval_ms": 56,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

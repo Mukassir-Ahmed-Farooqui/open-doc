@@ -1,0 +1,24 @@
+{
+  "qid": "golden-3",
+  "kind": "pos",
+  "question": "What services will the Blockchain Administrator provide to the Fund?",
+  "answer": "**Services the Blockchain Administrator will provide to the Fund**\n\n- Act as the Fund\u2019s **blockchain administrator** and render development and administrative services needed to issue the Fund\u2019s shares as ERC\u20111404 compatible digital securities and to maintain and administer the underlying smart contracts\u3010S1\u3011.  \n- Supply **facilities, equipment, technology, coding and other related services** that the Board deems necessary or useful for fulfilling its obligations\u3010S1\u3011.  \n- **Manage relationships** on behalf of the Fund with custodians, depositories, transfer agents, dividend\u2011disbursing agents, other stock\u2011holder servicing agents, accountants, attorneys, underwriters, brokers, dealers, corporate fiduciaries, insurers, banks, and any other parties required for issuance and transfer of the digital securities\u3010S1\u3011.  \n- **Report to the Board** on its performance and provide advice and recommendations on business and affairs of the Fund (excluding any investment\u2011advisory services)\u3010S1\u3011.  \n- **Engage other service providers** as needed, ensuring they comply with applicable law and maintain appropriate books and records\u3010S1\u3011.  \n- **Provide the services described in the agreement** related to the development of ERC\u20111404 compatible digital securities and the administration of the smart contracts underlying those securities\u3010S4\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 2874.4,
+  "e2e_ms": 3430.2,
+  "retrieval_ms": 1756,
+  "citations": [
+    "S1",
+    "S4"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

@@ -1,0 +1,23 @@
+{
+  "qid": "golden-8",
+  "kind": "pos",
+  "question": "What is the basis for the Fund's indemnification of the Blockchain Administrator?",
+  "answer": "The Fund agrees to indemnify, defend and hold harmless the Blockchain Administrator (and its affiliates, the \u201cIndemnified Parties\u201d) for **all damages, liabilities, costs and expenses (including reasonable attorneys\u2019 fees and settlement amounts)** that the Indemnified Parties incur **as a result of any pending, threatened or completed action, suit, investigation or other proceeding that arises out of or is based upon the Blockchain Administrator\u2019s performance of its duties or obligations under the Agreement**\u3010S1\u3011.  \n\nThe indemnification does **not** apply to liability that would arise from **criminal conduct, willful misfeasance, bad faith, gross negligence, or reckless disregard** of the Administrator\u2019s duties\u3010S1\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 3752.3,
+  "e2e_ms": 4051.9,
+  "retrieval_ms": 2914,
+  "citations": [
+    "S1"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}

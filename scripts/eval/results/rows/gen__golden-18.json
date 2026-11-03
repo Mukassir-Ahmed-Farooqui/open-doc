@@ -1,0 +1,23 @@
+{
+  "qid": "golden-18",
+  "kind": "pos",
+  "question": "Who signed the Agreement on behalf of ARCA CAPITAL MANAGEMENT, LLC?",
+  "answer": "The Agreement was signed for **ARCA\u202fCAPITAL\u202fMANAGEMENT,\u202fLLC** by **J.\u202fRayne\u202fSteinberg**, who is identified as the **Chief Executive Officer**\u3010S2\u3011.",
+  "abstained": false,
+  "retrieval_abstained": false,
+  "model": "openai/gpt-oss-120b",
+  "ttft_ms": 1644.0,
+  "e2e_ms": 1734.9,
+  "retrieval_ms": 1066,
+  "citations": [
+    "S2"
+  ],
+  "answer_llm_retries": 0,
+  "gold_in_context": true,
+  "cited_gold": true,
+  "citation_precision": 1.0,
+  "faithful": true,
+  "correct": true,
+  "unsupported": [],
+  "judge_model": "openai/gpt-oss-120b"
+}
