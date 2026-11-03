@@ -23,8 +23,9 @@ from app.providers.llm import ChatMessage, FallbackLLM, LLMError
 from app.retrieval.query import COMPARISON, SUMMARY, classify_query, reformulate
 from app.retrieval.retriever import ContextBlock, HybridRetriever, RetrievalResult
 
-_CITE_RE = re.compile(r"\[(S\d+(?:\s*[,;]\s*S?\d+)*)\]")
-_HISTORY_CITE_RE = re.compile(r"\s*\[S\d+(?:\s*[,;]\s*S?\d+)*\]")
+# Some models (e.g. openai/gpt-oss-*) write fullwidth lenticular brackets: 【S1】 instead of [S1].
+_CITE_RE = re.compile(r"[\[【](S\d+(?:\s*[,;]\s*S?\d+)*)[\]】]")
+_HISTORY_CITE_RE = re.compile(r"\s*[\[【]S\d+(?:\s*[,;]\s*S?\d+)*[\]】]")
 SNIPPET_CHARS = 400
 
 

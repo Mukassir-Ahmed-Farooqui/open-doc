@@ -64,6 +64,12 @@ def test_parse_citations_only_cited_sources() -> None:
     assert cites[0]["snippet"] == cites[0]["preview"] == "snippet 2"
 
 
+def test_parse_citations_accepts_fullwidth_brackets() -> None:
+    blocks = [_block(1), _block(2)]
+    cites = parse_citations("It is a Delaware statutory trust\u3010S2\u3011 [S1].", blocks)
+    assert [c["source_id"] for c in cites] == ["S2", "S1"]
+
+
 def test_no_citations_means_none_not_all() -> None:
     assert parse_citations("An answer with no markers.", [_block(1), _block(2)]) == []
 

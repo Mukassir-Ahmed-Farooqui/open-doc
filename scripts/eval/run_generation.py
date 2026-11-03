@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import re
 import statistics
 import sys
@@ -38,8 +39,24 @@ from scripts.eval.run_retrieval import RESULTS, ROWS, eval_db_url, owner_for  # 
 
 JUDGE_SYSTEM = (
     "You are a strict evaluator of answers produced by a document question-answering system. "
-    "Reply with a single JSON object and nothing else."
+    "Reply with a single JSON object and nothing else.\nReasoning: low"
 )
+# Reasoning models (openai/gpt-oss-*, qwen3) spend output tokens on hidden reasoning before the JSON.
+JUDGE_MAX_TOKENS = 2000
+
+
+class _RetryCounter(logging.Handler):
+    """Counts provider 429/5xx retries so latency rows inflated by back-off can be flagged."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.count = 0
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if record.getMessage() == "llm_retry":
+            self.count += 1
+
+
 JUDGE_TEMPLATE = """Sources given to the system:
 {sources}
 
@@ -56,6 +73,7 @@ Return JSON: {{"faithful": bool, "correct": bool, "unsupported": [str]}}"""
 
 
 def parse_json(text: str) -> dict:
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
         raise ValueError(f"no JSON in judge output: {text[:200]}")
@@ -69,7 +87,7 @@ async def judge(llm, question: str, gold: str, answer: str, sources: str) -> dic
     for attempt in range(3):
         result = await llm.complete(
             [ChatMessage("system", JUDGE_SYSTEM), ChatMessage("user", prompt)],
-            max_tokens=400,
+            max_tokens=JUDGE_MAX_TOKENS,
             temperature=0.0,
         )
         try:
@@ -104,6 +122,8 @@ async def run(limit: int, judge_model: str | None, pause_s: float) -> None:
     owner = owner_for("parent_child")
     es = build()
 
+    retries = _RetryCounter()
+    logging.getLogger("app.providers.llm").addHandler(retries)
     work = [("pos", it.qid, it.question, it.filename, it) for it in es.items]
     work += [("neg", f"neg-{i}", q, None, None) for i, q in enumerate(es.negatives)]
     done = 0
@@ -114,6 +134,7 @@ async def run(limit: int, judge_model: str | None, pause_s: float) -> None:
         if done >= limit:
             break
         doc_ids = [ids[filename]] if filename else list(ids.values())
+        retries.count = 0
         t0 = time.perf_counter()
         async with db.sessionmaker() as s:
             prepared = await rag.prepare(s, owner, doc_ids, question)
@@ -138,6 +159,8 @@ async def run(limit: int, judge_model: str | None, pause_s: float) -> None:
             "e2e_ms": round(e2e, 1),
             "retrieval_ms": prepared.retrieval_ms,
             "citations": [c["source_id"] for c in answer.citations],
+            # >0 means TTFT/E2E include rate-limit back-off and are excluded from the clean latency stats
+            "answer_llm_retries": retries.count,
         }
         if item is not None:
             gold_blocks = [sid for sid, b in blocks.items() if item.is_relevant(b.filename, b.text)]
@@ -195,6 +218,8 @@ def report() -> dict:
         xs = sorted(xs)
         return round(xs[min(len(xs) - 1, round(q * (len(xs) - 1)))], 1)
 
+    timed = [r for r in rows if not r["retrieval_abstained"]]
+    clean = [r for r in timed if not r.get("answer_llm_retries")]
     summary = {
         "answerable_questions": len(pos),
         "negatives": len(neg),
@@ -210,11 +235,26 @@ def report() -> dict:
         "answers_without_citations": sum(1 for r in answered if not r["citations"]),
         "false_abstention_rate": mean([float(r["abstained"]) for r in pos]),
         "negative_abstention_rate": mean([float(r["abstained"]) for r in neg]),
+        # abstention as a classifier for "out of scope": positives = negatives set
+        "abstention_precision": round(
+            sum(r["abstained"] for r in neg)
+            / (sum(r["abstained"] for r in neg) + sum(r["abstained"] for r in pos)),
+            3,
+        )
+        if any(r["abstained"] for r in rows)
+        else None,
+        "abstention_recall": mean([float(r["abstained"]) for r in neg]),
         "gold_in_context_rate": mean([float(r["gold_in_context"]) for r in pos]),
         "ttft_ms_p50": p([r["ttft_ms"] for r in rows if not r["retrieval_abstained"]], 0.5),
         "ttft_ms_p95": p([r["ttft_ms"] for r in rows if not r["retrieval_abstained"]], 0.95),
         "e2e_ms_p50": p([r["e2e_ms"] for r in rows if not r["retrieval_abstained"]], 0.5),
         "e2e_ms_p95": p([r["e2e_ms"] for r in rows if not r["retrieval_abstained"]], 0.95),
+        "latency_rows": len(timed),
+        "latency_rows_with_rate_limit_retries": len(timed) - len(clean),
+        "ttft_ms_p50_no_retries": p([r["ttft_ms"] for r in clean], 0.5),
+        "ttft_ms_p95_no_retries": p([r["ttft_ms"] for r in clean], 0.95),
+        "e2e_ms_p50_no_retries": p([r["e2e_ms"] for r in clean], 0.5),
+        "e2e_ms_p95_no_retries": p([r["e2e_ms"] for r in clean], 0.95),
     }
     (RESULTS / "generation.json").write_text(json.dumps({"summary": summary, "rows": rows}, indent=2))
     print(json.dumps(summary, indent=2))
