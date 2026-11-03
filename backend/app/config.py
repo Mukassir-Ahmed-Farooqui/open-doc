@@ -103,6 +103,8 @@ class Settings(BaseSettings):
     parent_max_tokens: int = 1200
 
     # ── Retrieval ──
+    # Defaults = the benchmarked production config: hybrid RRF + rerank of the top 12 (heading + 160 words),
+    # abstain below MIN_RERANK_SCORE. Rationale and numbers: docs/ARCHITECTURE.md, docs/BENCHMARKS.md.
     retrieval_candidates: int = 30
     rerank_candidates: int = 12
     rerank_passage_words: int = 160

@@ -83,6 +83,24 @@ No LLM calls happen during ingestion. The old per-section summaries are gone; a 
 6. **Generate** with Groq (OpenAI-compatible streaming over httpx). If Groq fails before the first token, Gemini takes over; a failure after the first token is reported, never spliced.
 7. **Cite** by parsing `[S#]` markers. Only cited sources become citations (document, doc id, page, section, snippet, score). An abstention has none.
 
+## Default retrieval configuration
+
+Production uses **hybrid RRF + cross-encoder rerank over parent-child chunks** whenever a reranker is configured, and plain hybrid RRF when `RERANKER_PROVIDER=none`. These are the code defaults, so no environment variable is needed to get them:
+
+| Where | Default |
+|---|---|
+| `HybridRetriever.retrieve()` | `mode="hybrid"`, `rerank=True` (rerank is skipped automatically when the reranker is `None`) |
+| `Settings` | `RERANKER_PROVIDER=fastembed`, `RETRIEVAL_CANDIDATES=30`, `RRF_K=60`, `RERANK_CANDIDATES=12`, `RERANK_PASSAGE_WORDS=160`, `MIN_RERANK_SCORE=-9.0`, `MIN_DENSE_SCORE=0.50` |
+| `ingest_document()` | `strategy="parent_child"` |
+
+Why, from [BENCHMARKS.md](BENCHMARKS.md) (38 questions, 8 contracts):
+
+* **Corpus-wide questions** are where configurations differ, and rerank wins clearly: R@1 0.605 vs 0.447 for hybrid RRF and 0.474 for dense, MRR@10 0.663 vs 0.547 and 0.493.
+* **Abstention needs the rerank score.** On the calibration set the top rerank score of every out-of-scope question (max -9.555) is below every answerable one (min -8.155), so `MIN_RERANK_SCORE=-9.0` separates them. Top cosine scores overlap (29 of 72 negative scores are at or above 0.50), so the dense threshold used without a reranker is a weaker guard.
+* **Sparse alone** has the best corpus R@10 (0.895) but R@1 of 0.447; fusing it with dense keeps its recall in the candidate pool for the reranker.
+* **Costs accepted:** ~0.9 s per query on CPU and ~140 MB of RAM. Within a single selected document plain hybrid RRF is marginally better (MRR@10 0.873 vs 0.846), so this default trades a little single-document precision for corpus-wide accuracy and reliable abstention. A wider rerank (20 candidates, full passages) scores best in both scopes (MRR@10 0.691 corpus, 0.882 document) but roughly doubles rerank latency, so it is not the default; set `RERANK_CANDIDATES=20` and `RERANK_PASSAGE_WORDS=10000` to opt in.
+* **512 MB hosts:** `RERANKER_PROVIDER=none` drops to hybrid RRF (corpus MRR@10 0.547, document 0.873) with dense-threshold abstention.
+
 ## Decisions and rejected alternatives
 
 | Decision | Why | Rejected |
