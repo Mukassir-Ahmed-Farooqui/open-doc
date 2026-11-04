@@ -41,7 +41,7 @@ export function Dropzone({ compact, className, children }: { compact?: boolean; 
           </div>
           <div className={cn(compact ? "flex-1" : "")}>
             <p className="text-base font-medium">{over ? "Drop to upload" : "Drop files here to upload"}</p>
-            <p className="text-sm text-fg-muted">PDF, DOCX, TXT or Markdown. Multiple files at once.</p>
+            <p className="text-sm text-fg-muted">PDF, DOCX, TXT or Markdown. Up to 10 MB and 50 pages each, 5 documents per account.</p>
           </div>
           <Button variant="outline" onClick={openPicker}>
             Browse files
