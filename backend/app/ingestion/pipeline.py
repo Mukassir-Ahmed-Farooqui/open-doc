@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.config import Settings
 from app.db.models import Chunk, Document, DocumentStatus, Section
 from app.ingestion.chunking import STRATEGIES, ChunkingConfig, SectionDraft
-from app.ingestion.parsers import parse
+from app.ingestion.parsers import ParseError, parse
 from app.providers.embeddings import EmbeddingProvider
 from app.storage import ObjectStorage
 
@@ -69,9 +69,18 @@ async def ingest_document(
         owner_id, filename, storage_key = doc.owner_id, doc.filename, doc.storage_key
 
     data = await storage.get(storage_key)
-    parsed, drafts = await asyncio.to_thread(
-        build_drafts, filename, data, chunking_config(settings), strategy
-    )
+    try:
+        parsed, drafts = await asyncio.wait_for(
+            asyncio.to_thread(build_drafts, filename, data, chunking_config(settings), strategy),
+            timeout=settings.parse_timeout_seconds,
+        )
+    except TimeoutError:
+        raise ParseError("Processing this document took too long. Try a simpler or smaller file.") from None
+    del data
+    if parsed.num_pages > settings.max_pdf_pages and filename.lower().endswith(".pdf"):
+        raise ParseError(f"Documents are limited to {settings.max_pdf_pages} pages during the beta.")
+    if sum(len(b.text) for b in parsed.blocks) > settings.max_extracted_chars:
+        raise ParseError("This document contains too much text for the beta limits.")
     await _set_progress(sessionmaker, doc_id, 25)
 
     # Deduplicate children within the document before spending compute on embeddings.

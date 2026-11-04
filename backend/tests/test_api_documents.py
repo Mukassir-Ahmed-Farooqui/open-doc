@@ -150,9 +150,13 @@ async def test_rejects_unsupported_and_oversize(client, auth, monkeypatch) -> No
     assert r.status_code == 413
 
 
-async def test_corrupt_pdf_fails_permanently(app, client, auth) -> None:
-    doc = await upload_and_ingest(app, client, auth, "broken.pdf", b"%PDF-1.4 this is not really a pdf")
-    assert doc["status"] == "failed" and doc["error"]
+async def test_corrupt_pdf_rejected_at_upload(client, auth) -> None:
+    r = await client.post(
+        "/api/v1/upload",
+        headers=auth,
+        files={"file": ("broken.pdf", b"%PDF-1.4 this is not really a pdf", "application/pdf")},
+    )
+    assert r.status_code == 422 and r.json()["error"]["code"] == "invalid_file"
 
 
 async def test_delete_removes_chunks_object_and_chat_refs(app, client, auth) -> None:

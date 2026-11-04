@@ -17,6 +17,7 @@ from app.db.models import User
 from app.errors import AppError
 from app.generation.service import RAGService
 from app.ingestion.worker import IngestionWorker
+from app.quota import AIReservation, reserve_ai
 from app.storage import ObjectStorage
 
 _bearer = HTTPBearer(auto_error=False)
@@ -68,3 +69,8 @@ def parse_uuid(value: str, what: str) -> uuid.UUID:
         return uuid.UUID(value)
     except (ValueError, AttributeError, TypeError):
         raise AppError(400, f"Invalid {what} format") from None
+
+
+async def ai_question(request: Request, user: User = Depends(get_current_user)) -> AIReservation:
+    """Kill switch + per-user minute/day + global day quotas for one AI generation."""
+    return await reserve_ai(request, user.id)

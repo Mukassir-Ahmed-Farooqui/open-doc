@@ -39,6 +39,12 @@ os.environ.update(
         "RATE_LIMIT_AUTH": "1000/minute",
         "RATE_LIMIT_QUERY": "1000/minute",
         "RATE_LIMIT_UPLOAD": "1000/minute",
+        "AI_QUESTIONS_PER_USER_MINUTE": "1000",
+        "AI_QUESTIONS_PER_USER_DAY": "1000",
+        "AI_QUESTIONS_GLOBAL_DAY": "100000",
+        "SIGNUPS_PER_IP_DAY": "1000",
+        "MAX_DOCS_PER_USER": "1000",
+        "MAX_STORAGE_MB_PER_USER": "1000",
     }
 )
 os.environ.setdefault("FASTEMBED_CACHE_DIR", str(Path.home() / ".cache" / "fastembed"))
@@ -100,7 +106,10 @@ async def client(app) -> AsyncIterator[httpx.AsyncClient]:
 
     async with app.state.db.sessionmaker() as s:
         await s.execute(
-            text("TRUNCATE users, documents, sections, chunks, chats, messages, query_logs CASCADE")
+            text(
+                "TRUNCATE users, documents, sections, chunks, chats, messages, query_logs, "
+                "usage_counters CASCADE"
+            )
         )
         await s.commit()
     app.state.rag.llm = None

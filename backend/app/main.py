@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.api.routes import auth, chats, documents, health
@@ -94,6 +95,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json",
     )
     install_error_handlers(app)
+
+    # Reject oversized uploads from Content-Length before the multipart body is read.
+    # Registered before CORS so the 413 still carries CORS headers for the browser.
+    upload_ceiling = settings.max_upload_bytes + 64 * 1024  # multipart framing overhead
+
+    @app.middleware("http")
+    async def upload_size_guard(request: Request, call_next):
+        if request.method == "POST" and request.url.path.endswith("/upload"):
+            try:
+                declared = int(request.headers.get("content-length", "0"))
+            except ValueError:
+                declared = 0
+            if declared > upload_ceiling:
+                logger.warning("upload_rejected", extra={"reason": "content_length", "bytes": declared})
+                msg = f"That file is over the {settings.max_upload_mb} MB limit. Try a smaller PDF."
+                return JSONResponse(
+                    status_code=413,
+                    content={"error": {"code": "payload_too_large", "message": msg}, "detail": msg},
+                )
+        return await call_next(request)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

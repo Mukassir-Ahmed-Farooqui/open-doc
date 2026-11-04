@@ -26,6 +26,10 @@ from app.storage import ObjectNotFoundError, ObjectStorage
 
 logger = logging.getLogger(__name__)
 
+# One ingestion at a time across the whole application (Render free = 512 MB RAM): a
+# transaction-scoped advisory lock serializes claims, and a job is only claimed when no other
+# document is currently processing, whichever instance or worker owns it.
+_CLAIM_LOCK_SQL = text("SELECT pg_try_advisory_xact_lock(727274)")
 _CLAIM_SQL = text(
     """
     UPDATE documents
@@ -34,6 +38,7 @@ _CLAIM_SQL = text(
     WHERE id = (
         SELECT id FROM documents
         WHERE status = 'queued' AND next_attempt_at <= now()
+          AND NOT EXISTS (SELECT 1 FROM documents p WHERE p.status = 'processing')
         ORDER BY next_attempt_at
         FOR UPDATE SKIP LOCKED
         LIMIT 1
@@ -127,7 +132,8 @@ class IngestionWorker:
 
     async def claim(self) -> tuple[uuid.UUID, int] | None:
         async with self.sessionmaker() as session:
-            row = (await session.execute(_CLAIM_SQL)).first()
+            locked = (await session.execute(_CLAIM_LOCK_SQL)).scalar()
+            row = (await session.execute(_CLAIM_SQL)).first() if locked else None
             await session.commit()
         return (row.id, row.attempts) if row else None
 

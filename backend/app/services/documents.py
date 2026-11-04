@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import uuid
 
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import Settings, get_settings
 from app.db.models import Chat, Document, DocumentStatus, Section
 from app.errors import AppError, not_found
 from app.ingestion.parsers import SUPPORTED_TYPES, ParseError, detect_type
+from app.ingestion.validation import UploadRejectedError, validate_upload
 from app.schemas.documents import DocumentResponse
 from app.storage import ObjectNotFoundError, ObjectStorage
 
@@ -59,21 +62,48 @@ async def get_document(session: AsyncSession, owner_id: uuid.UUID, doc_id: uuid.
     return doc
 
 
+_ALLOWED_DECLARED = {
+    None,
+    "",
+    "application/octet-stream",
+    "binary/octet-stream",
+    "application/x-pdf",
+    "application/zip",
+    "text/x-markdown",
+    *SUPPORTED_TYPES.values(),
+}
+
+
 async def create_document(
     session: AsyncSession,
     storage: ObjectStorage,
     owner_id: uuid.UUID,
     filename: str,
     data: bytes,
+    *,
+    settings: Settings | None = None,
+    declared_type: str | None = None,
 ) -> tuple[Document, bool]:
-    """Store the file and enqueue ingestion. Returns (document, is_duplicate)."""
+    """Validate, enforce per-user quotas, store the file and enqueue ingestion.
+
+    Returns (document, is_duplicate). The per-user document/storage quota check and the insert
+    run under a per-user transaction-scoped advisory lock, so concurrent uploads cannot both
+    pass the check (atomic reservation). The object is written before commit; if anything
+    fails afterwards it is deleted, so failed uploads leave no orphaned rows or files.
+    """
+    settings = settings or get_settings()
     display_name = safe_filename(filename)
+    if not data:
+        raise AppError(400, "Uploaded file is empty")
     try:
         ext = detect_type(display_name, data)
     except ParseError as exc:
+        _reject(owner_id, "type")
         raise AppError(415, str(exc)) from None
-    if not data:
-        raise AppError(400, "Uploaded file is empty")
+    declared = (declared_type or "").split(";")[0].strip().lower() or None
+    if declared not in _ALLOWED_DECLARED:
+        _reject(owner_id, "mime", declared=declared)
+        raise AppError(415, "Unsupported file type. Upload a PDF, DOCX, TXT or Markdown file.")
 
     digest = hashlib.sha256(data).hexdigest()
     existing = (
@@ -98,9 +128,53 @@ async def create_document(
             await session.refresh(existing)
         return existing, True
 
+    try:
+        await asyncio.wait_for(
+            asyncio.to_thread(validate_upload, ext, data, settings),
+            timeout=settings.parse_timeout_seconds / 4,
+        )
+    except UploadRejectedError as exc:
+        _reject(owner_id, "invalid_file")
+        raise AppError(422, str(exc), code="invalid_file") from None
+    except TimeoutError:
+        _reject(owner_id, "validation_timeout")
+        raise AppError(
+            422, "This file took too long to check and was rejected.", code="invalid_file"
+        ) from None
+
+    # Atomic per-user reservation: serialize this user's uploads for the rest of the transaction.
+    await session.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"upload:{owner_id}"})
+    count, used = (
+        await session.execute(
+            select(func.count(Document.id), func.coalesce(func.sum(Document.file_size_bytes), 0)).where(
+                Document.owner_id == owner_id
+            )
+        )
+    ).one()
+    if count >= settings.max_docs_per_user:
+        await session.rollback()
+        _reject(owner_id, "doc_limit")
+        raise AppError(
+            429,
+            f"You can keep up to {settings.max_docs_per_user} documents during the beta. "
+            "Delete one to upload another.",
+            code="quota_exceeded",
+            details={"reason": "doc_limit", "limit": settings.max_docs_per_user},
+        )
+    if int(used) + len(data) > settings.max_storage_bytes_per_user:
+        await session.rollback()
+        _reject(owner_id, "storage_limit")
+        left_mb = max(0.0, (settings.max_storage_bytes_per_user - int(used)) / 1048576)
+        raise AppError(
+            429,
+            f"This upload would go over your {settings.max_storage_mb_per_user} MB storage limit "
+            f"({left_mb:.1f} MB left). Delete a document to free space.",
+            code="quota_exceeded",
+            details={"reason": "storage_limit", "limit_mb": settings.max_storage_mb_per_user},
+        )
+
     doc_id = uuid.uuid4()
     storage_key = f"documents/{doc_id.hex}"
-    await storage.put(storage_key, data, SUPPORTED_TYPES[ext])
     doc = Document(
         id=doc_id,
         owner_id=owner_id,
@@ -111,20 +185,40 @@ async def create_document(
         content_hash=digest,
     )
     session.add(doc)
+    stored = False
     try:
+        await session.flush()
+        await storage.put(storage_key, data, SUPPORTED_TYPES[ext])
+        stored = True
         await session.commit()
     except IntegrityError:
         # Concurrent upload of the same bytes by the same user: keep the first one.
         await session.rollback()
-        await storage.delete(storage_key)
+        if stored:
+            await storage.delete(storage_key)
         existing = (
             await session.execute(
                 select(Document).where(Document.owner_id == owner_id, Document.content_hash == digest)
             )
         ).scalar_one()
         return existing, True
+    except BaseException:
+        await session.rollback()
+        if stored:
+            try:
+                await storage.delete(storage_key)
+            except Exception:
+                logger.exception("storage_cleanup_failed", extra={"doc_id": str(doc_id)})
+        raise
     await session.refresh(doc)
+    logger.info(
+        "upload_accepted", extra={"user_id": str(owner_id), "doc_id": str(doc_id), "bytes": len(data)}
+    )
     return doc, False
+
+
+def _reject(owner_id: uuid.UUID, reason: str, **extra: object) -> None:
+    logger.warning("upload_rejected", extra={"user_id": str(owner_id), "reason": reason, **extra})
 
 
 async def delete_document(

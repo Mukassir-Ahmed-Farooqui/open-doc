@@ -15,13 +15,13 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.api.deps import get_current_user, get_rag, get_session, parse_uuid
+from app.api.deps import ai_question, get_current_user, get_rag, get_session, parse_uuid
 from app.config import Settings, get_settings
 from app.db.models import Chat, Message, User
 from app.errors import AppError
 from app.generation.service import Answer, LLMNotConfiguredError, Prepared, RAGService
 from app.providers.llm import LLMError
-from app.ratelimit import rate_limit
+from app.quota import AIReservation
 from app.schemas.chat import (
     ChatCreateRequest,
     ChatDetailResponse,
@@ -239,7 +239,6 @@ def _schedule_title(
 @router.post(
     "/chats/{chat_id}/messages",
     response_model=MessageResponse,
-    dependencies=[Depends(rate_limit("rate_limit_query"))],
 )
 async def create_message(
     chat_id: str,
@@ -249,6 +248,7 @@ async def create_message(
     session: AsyncSession = Depends(get_session),
     rag: RAGService = Depends(get_rag),
     settings: Settings = Depends(get_settings),
+    quota: AIReservation = Depends(ai_question),
 ) -> MessageResponse:
     turn = await _begin_turn(session, user, chat_id, body.question, settings, rag)
     if turn.is_first:
@@ -263,7 +263,12 @@ async def create_message(
         answer = await rag.answer(prepared)
     except LLMError:
         logger.exception("llm_failed")
-        raise AppError(503, "The language model is unavailable, try again shortly") from None
+        await quota.refund()
+        raise AppError(
+            503,
+            "The AI service is busy right now. Please try again in a minute.",
+            headers={"Retry-After": "30"},
+        ) from None
     msg = await _save_answer(session, user, turn, answer, turn.doc_ids)
     return chat_svc.message_response(msg)
 
@@ -274,7 +279,6 @@ def _sse(event: str, data: object) -> bytes:
 
 @router.post(
     "/chats/{chat_id}/messages/stream",
-    dependencies=[Depends(rate_limit("rate_limit_query"))],
     responses={200: {"content": {"text/event-stream": {}}}},
 )
 async def stream_message(
@@ -285,6 +289,7 @@ async def stream_message(
     session: AsyncSession = Depends(get_session),
     rag: RAGService = Depends(get_rag),
     settings: Settings = Depends(get_settings),
+    quota: AIReservation = Depends(ai_question),
 ) -> StreamingResponse:
     """Server-Sent Events. Events: ``meta`` (once), ``token`` (many, ``{"delta"}``), then
     ``done`` (the saved assistant message, same shape as the JSON endpoint) or ``error``."""
@@ -327,9 +332,13 @@ async def stream_message(
                     answer = payload  # type: ignore[assignment]
         except LLMError:
             logger.exception("llm_stream_failed")
-            yield _sse("error", {"message": "The language model is unavailable, try again shortly"})
+            await quota.refund()
+            yield _sse(
+                "error", {"message": "The AI service is busy right now. Please try again in a minute."}
+            )
             return
         if answer is None:
+            await quota.refund()
             yield _sse("error", {"message": "No answer was generated"})
             return
         async with sessionmaker() as s:
@@ -346,12 +355,13 @@ async def stream_message(
 # ───────────────────────────── stateless query ─────────────────────────────
 
 
-@router.post("/query", response_model=QueryResponse, dependencies=[Depends(rate_limit("rate_limit_query"))])
+@router.post("/query", response_model=QueryResponse)
 async def query(
     body: QueryRequest,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     rag: RAGService = Depends(get_rag),
+    quota: AIReservation = Depends(ai_question),
 ) -> QueryResponse:
     started = time.perf_counter()
     selected = await doc_svc.resolve_owned_ids(session, user.id, body.selected_doc_ids)
@@ -363,7 +373,12 @@ async def query(
         answer = await rag.answer(prepared)
     except LLMError:
         logger.exception("llm_failed")
-        raise AppError(503, "The language model is unavailable, try again shortly") from None
+        await quota.refund()
+        raise AppError(
+            503,
+            "The AI service is busy right now. Please try again in a minute.",
+            headers={"Retry-After": "30"},
+        ) from None
     chat_svc.add_query_log(
         session,
         user_id=user.id,

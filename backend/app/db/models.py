@@ -235,3 +235,13 @@ class QueryLog(Base):
     retrieval_ms: Mapped[int | None] = mapped_column(Integer)
     latency_ms: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = _created()
+
+
+class UsageCounter(Base):
+    """Fixed-window counters for quotas. ``key`` embeds the window (e.g. the UTC day)."""
+
+    __tablename__ = "usage_counters"
+
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)

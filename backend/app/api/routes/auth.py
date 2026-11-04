@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,7 @@ from app.auth.security import DUMMY_HASH, create_access_token, hash_password, ve
 from app.config import Settings, get_settings
 from app.db.models import User
 from app.errors import AppError
+from app.quota import check_signup
 from app.ratelimit import rate_limit
 from app.schemas.auth import (
     LoginRequest,
@@ -37,10 +38,13 @@ def _user_response(user: User) -> UserResponse:
     response_model=RegisterResponse,
     dependencies=[Depends(rate_limit("rate_limit_auth"))],
 )
-async def register(body: RegisterRequest, session: AsyncSession = Depends(get_session)) -> RegisterResponse:
+async def register(
+    body: RegisterRequest, request: Request, session: AsyncSession = Depends(get_session)
+) -> RegisterResponse:
     email = body.email.lower()
     if (await session.execute(select(User.id).where(User.email == email))).first():
         raise AppError(409, "Email already registered")
+    await check_signup(request)  # 3 accounts per IP per day (Postgres-backed)
     user = User(email=email, hashed_password=await hash_password(body.password), full_name=body.full_name)
     session.add(user)
     try:
