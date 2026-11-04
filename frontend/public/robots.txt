@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /documents
+Disallow: /chat
+Disallow: /settings
+
+Sitemap: https://open-doc-mocha.vercel.app/sitemap.xml

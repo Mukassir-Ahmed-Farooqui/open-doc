@@ -1,22 +1,41 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { UploadProvider } from "@/components/documents/UploadProvider";
-import { AppShell } from "@/components/layout/AppShell";
 import { LoginPage, RegisterPage } from "@/pages/AuthPages";
-import { ChatPage } from "@/pages/ChatPage";
-import { DashboardPage } from "@/pages/DashboardPage";
-import { DocumentPage } from "@/pages/DocumentPage";
-import { LibraryPage } from "@/pages/LibraryPage";
-import { NotFoundPage } from "@/pages/NotFoundPage";
-import { SettingsPage } from "@/pages/SettingsPage";
+
+// Code-split by audience: the marketing page is its own chunk (signed-in users never download it),
+// and the authed app (shell + pages) is split off so signed-out visitors don't download it either.
+const LandingPage = lazy(() => import("@/pages/landing/LandingPage"));
+const AppShell = lazy(() => import("@/components/layout/AppShell").then((m) => ({ default: m.AppShell })));
+const DashboardPage = lazy(() => import("@/pages/DashboardPage").then((m) => ({ default: m.DashboardPage })));
+const LibraryPage = lazy(() => import("@/pages/LibraryPage").then((m) => ({ default: m.LibraryPage })));
+const DocumentPage = lazy(() => import("@/pages/DocumentPage").then((m) => ({ default: m.DocumentPage })));
+const ChatPage = lazy(() => import("@/pages/ChatPage").then((m) => ({ default: m.ChatPage })));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
+
+const blank = <div className="min-h-dvh bg-bg" />;
+const page = (el: ReactNode) => <Suspense fallback={null}>{el}</Suspense>;
 
 function RequireAuth() {
   const { token } = useAuth();
   const location = useLocation();
-  if (!token) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  if (!token) {
+    // Signed-out visitors at "/" get the landing page; every other protected route still goes to /login.
+    if (location.pathname === "/")
+      return (
+        <Suspense fallback={blank}>
+          <LandingPage />
+        </Suspense>
+      );
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  }
   return (
     <UploadProvider>
-      <Outlet />
+      <Suspense fallback={blank}>
+        <Outlet />
+      </Suspense>
     </UploadProvider>
   );
 }
@@ -28,12 +47,12 @@ export function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="documents" element={<LibraryPage />} />
-          <Route path="documents/:docId" element={<DocumentPage />} />
-          <Route path="chat/:chatId?" element={<ChatPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          <Route index element={page(<DashboardPage />)} />
+          <Route path="documents" element={page(<LibraryPage />)} />
+          <Route path="documents/:docId" element={page(<DocumentPage />)} />
+          <Route path="chat/:chatId?" element={page(<ChatPage />)} />
+          <Route path="settings" element={page(<SettingsPage />)} />
+          <Route path="*" element={page(<NotFoundPage />)} />
         </Route>
       </Route>
     </Routes>

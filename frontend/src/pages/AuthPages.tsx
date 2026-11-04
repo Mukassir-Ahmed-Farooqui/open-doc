@@ -8,7 +8,7 @@ import { errorMessage } from "@/lib/api/errors";
 
 function AuthLayout({ title, subtitle, children, footer }: { title: string; subtitle: string; children: ReactNode; footer: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
+    <div className="safe-area flex min-h-dvh flex-col bg-bg">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,var(--accent-soft),transparent_70%)] opacity-70" aria-hidden />
       <header className="relative px-6 py-5">
         <Logo />
