@@ -93,6 +93,22 @@ async def download_document(
     )
 
 
+@router.get("/documents/{doc_id}/file-url")
+async def document_file_url(
+    doc_id: str,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+    storage: ObjectStorage = Depends(get_storage),
+) -> dict[str, object]:
+    """Short-lived direct URL to the original file (None when storage is local)."""
+    doc = await svc.get_document(session, user.id, parse_uuid(doc_id, "doc_id"))
+    expires = 600
+    url = await storage.presigned_url(
+        doc.storage_key, content_type=doc.content_type, filename=doc.filename, expires_s=expires
+    )
+    return {"url": url, "expires_in": expires if url else None}
+
+
 @router.delete("/documents/{doc_id}", response_model=DeleteResponse)
 async def delete_document(
     doc_id: str,

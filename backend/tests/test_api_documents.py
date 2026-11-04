@@ -116,6 +116,10 @@ async def test_same_filename_two_users_isolated(app, client) -> None:
     assert 'filename="contract.pdf"' in ra.headers["content-disposition"]
     # Bob cannot see, download or delete Alice's document (404, no existence leak).
     assert (await client.get(f"/api/v1/documents/{a['doc_id']}", headers=bob)).status_code == 404
+    # Local storage issues no direct URL (client falls back to /download); others' docs stay hidden.
+    fu = await client.get(f"/api/v1/documents/{a['doc_id']}/file-url", headers=alice)
+    assert fu.status_code == 200 and fu.json() == {"url": None, "expires_in": None}
+    assert (await client.get(f"/api/v1/documents/{a['doc_id']}/file-url", headers=bob)).status_code == 404
     assert (await client.get(f"/api/v1/documents/{a['doc_id']}/download", headers=bob)).status_code == 404
     assert (await client.delete(f"/api/v1/documents/{a['doc_id']}", headers=bob)).status_code == 404
     assert [d["doc_id"] for d in (await client.get("/api/v1/documents", headers=bob)).json()] == [b["doc_id"]]
@@ -163,3 +167,26 @@ async def test_delete_removes_chunks_object_and_chat_refs(app, client, auth) -> 
     detail = (await client.get(f"/api/v1/chats/{chat['id']}", headers=auth)).json()
     assert detail["selected_doc_ids"] == []
     assert (await client.get(f"/api/v1/documents/{doc['doc_id']}/download", headers=auth)).status_code == 404
+
+
+def test_s3_presigned_url_is_inline_and_signed() -> None:
+    import asyncio
+    from types import SimpleNamespace
+
+    from app.storage.s3 import S3Storage
+
+    st = S3Storage(
+        SimpleNamespace(
+            s3_bucket="b",
+            s3_endpoint_url="https://example.com/s3",
+            s3_region="ap-south-1",
+            s3_access_key_id="AKIDEXAMPLE",
+            s3_secret_access_key="secret",
+        )
+    )
+    url = asyncio.run(
+        st.presigned_url("u/1/a.pdf", content_type="application/pdf", filename='r"x.pdf', expires_s=600)
+    )
+    assert url.startswith("https://example.com/s3/b/u/1/a.pdf?")
+    assert "X-Amz-Signature=" in url and "X-Amz-Expires=600" in url
+    assert "response-content-disposition=inline" in url
