@@ -70,7 +70,8 @@ Every variable maps to a field in `backend/app/config.py`; `.env.example` lists 
 | Retrieval | `RETRIEVAL_CANDIDATES` (30), `RERANK_CANDIDATES` (12), `RERANK_PASSAGE_WORDS` (160), `CONTEXT_TOP_K` (6), `RRF_K` (60), `MIN_RERANK_SCORE` (-9.0), `MIN_DENSE_SCORE` (0.50), `MAX_CONTEXT_TOKENS` (3500), `HISTORY_TURNS` (6), `SUMMARY_MAX_SECTIONS` (12) |
 | Chunking | `CHILD_TARGET_TOKENS` (300), `CHILD_OVERLAP_TOKENS` (50), `CHILD_MIN_TOKENS` (40), `SECTION_MIN_TOKENS` (15), `PARENT_MAX_TOKENS` (1200) |
 | Worker | `WORKER_ENABLED` (true), `WORKER_CONCURRENCY` (1), `WORKER_POLL_SECONDS` (5), `WORKER_MAX_ATTEMPTS` (3), `WORKER_STALE_MINUTES` (15) |
-| Limits | `MAX_UPLOAD_MB` (20), `RATE_LIMIT_AUTH` (`10/minute`), `RATE_LIMIT_QUERY` (`30/minute`), `RATE_LIMIT_UPLOAD` (`30/hour`); limits are per instance |
+| Limits | `MAX_UPLOAD_MB` (10), `MAX_PDF_PAGES` (50), `MAX_DOCS_PER_USER` (5), `MAX_STORAGE_MB_PER_USER` (25), `RATE_LIMIT_AUTH` (`10/minute`), `RATE_LIMIT_UPLOAD` (`30/hour`) (these two are per instance) |
+| Beta quotas (Postgres-backed, UTC day) | `AI_ENABLED` (kill switch), `AI_QUESTIONS_PER_USER_DAY` (30), `AI_QUESTIONS_PER_USER_MINUTE` (5), `AI_QUESTIONS_GLOBAL_DAY` (300), `SIGNUPS_PER_IP_DAY` (3). One ingestion runs at a time across all instances |
 | Database pool | `DB_POOL_SIZE` (5), `DB_MAX_OVERFLOW` (5), `DB_ECHO` (false) |
 | Auth | `JWT_ALGORITHM` (`HS256`), `JWT_EXPIRE_MINUTES` (60) |
 | Logging | `LOG_LEVEL` (`INFO`), `LOG_JSON` (true), `APP_NAME`, `APP_VERSION` |

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, Request, UploadFile, status
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,11 +16,13 @@ from app.errors import AppError
 from app.generation.service import LLMNotConfiguredError, RAGService
 from app.ingestion.worker import IngestionWorker
 from app.providers.llm import LLMError
+from app.quota import reserve_ai
 from app.ratelimit import rate_limit
 from app.schemas.documents import DeleteResponse, DocumentResponse, SummaryResponse, UploadResponse
 from app.services import documents as svc
 from app.storage import ObjectNotFoundError, ObjectStorage
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["documents"])
 
 _READ_CHUNK = 1024 * 1024
@@ -46,8 +49,19 @@ async def upload_document(
     while chunk := await file.read(_READ_CHUNK):
         buf.extend(chunk)
         if len(buf) > settings.max_upload_bytes:
-            raise AppError(413, f"File exceeds the {settings.max_upload_mb} MB limit")
-    doc, duplicate = await svc.create_document(session, storage, user.id, file.filename or "", bytes(buf))
+            logger.warning("upload_rejected", extra={"user_id": str(user.id), "reason": "too_large"})
+            raise AppError(
+                413, f"That file is over the {settings.max_upload_mb} MB limit. Try a smaller PDF."
+            )
+    doc, duplicate = await svc.create_document(
+        session,
+        storage,
+        user.id,
+        file.filename or "",
+        bytes(buf),
+        settings=settings,
+        declared_type=file.content_type,
+    )
     if doc.status == DocumentStatus.QUEUED:
         worker.notify()
     body = svc.to_response(doc) | {"duplicate": duplicate}
@@ -121,13 +135,10 @@ async def delete_document(
     return DeleteResponse(doc_id=str(uid))
 
 
-@router.get(
-    "/documents/{doc_id}/summary",
-    response_model=SummaryResponse,
-    dependencies=[Depends(rate_limit("rate_limit_query"))],
-)
+@router.get("/documents/{doc_id}/summary", response_model=SummaryResponse)
 async def document_summary(
     doc_id: str,
+    request: Request,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
     rag: RAGService = Depends(get_rag),
@@ -138,12 +149,18 @@ async def document_summary(
         return SummaryResponse(doc_id=str(doc.id), summary=doc.summary, model=None)
     if doc.status != DocumentStatus.READY:
         raise AppError(409, "Document is not ready yet")
+    quota = await reserve_ai(request, user.id)  # only uncached summaries cost an LLM call
     try:
         summary, model = await rag.document_summary(await svc.section_openings(session, user.id, doc.id))
     except LLMNotConfiguredError as exc:
         raise AppError(503, str(exc)) from None
     except LLMError:
-        raise AppError(503, "The language model is unavailable, try again shortly") from None
+        await quota.refund()
+        raise AppError(
+            503,
+            "The AI service is busy right now. Please try again in a minute.",
+            headers={"Retry-After": "30"},
+        ) from None
     doc.summary = summary
     await session.commit()
     return SummaryResponse(doc_id=str(doc.id), summary=summary, model=model)

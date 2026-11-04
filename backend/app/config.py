@@ -63,7 +63,13 @@ class Settings(BaseSettings):
     s3_region: str = "auto"
     s3_access_key_id: str | None = None
     s3_secret_access_key: str | None = None
-    max_upload_mb: int = 20
+    max_upload_mb: int = 10
+    max_pdf_pages: int = 50
+    max_docs_per_user: int = 5
+    max_storage_mb_per_user: int = 25
+    max_extracted_chars: int = 2_000_000
+    max_docx_uncompressed_mb: int = 60
+    parse_timeout_seconds: float = 120.0
 
     # ── Embeddings ──
     embedding_provider: Literal["fastembed", "gemini"] = "fastembed"
@@ -129,6 +135,13 @@ class Settings(BaseSettings):
     rate_limit_query: str = "30/minute"
     rate_limit_upload: str = "30/hour"
 
+    # ── Public beta quotas (Postgres-backed; survive restarts and multiple workers) ──
+    ai_enabled: bool = True  # emergency kill switch: false -> every AI request gets 503
+    ai_questions_per_user_day: int = 30
+    ai_questions_per_user_minute: int = 5
+    ai_questions_global_day: int = 300
+    signups_per_ip_day: int = 3
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:
@@ -165,6 +178,10 @@ class Settings(BaseSettings):
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_mb * 1024 * 1024
+
+    @property
+    def max_storage_bytes_per_user(self) -> int:
+        return self.max_storage_mb_per_user * 1024 * 1024
 
 
 @lru_cache(maxsize=1)
