@@ -161,6 +161,13 @@
     background: var(--accent-soft);
     color: var(--accent-soft-fg);
   }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (display-mode: standalone) {
+    html, body { overscroll-behavior-y: none; }
+  }
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
@@ -174,6 +181,14 @@
 }
 
 @layer components {
+  /* Notch / home-indicator insets (viewport-fit=cover). 0 in a normal browser tab. */
+  .safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
     background-size: 400% 100%;

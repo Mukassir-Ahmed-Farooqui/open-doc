@@ -3,11 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="OpenDoc — ask questions of your documents and get answers with page-level citations." />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="canonical" href="https://open-doc-mocha.vercel.app/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="OpenDoc is an open-source document intelligence app: upload PDF, DOCX, Markdown or text and ask questions. Hybrid retrieval streams answers with page-level citations, and it says so when the documents do not contain the answer." />
+    <meta name="application-name" content="OpenDoc" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OpenDoc" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OpenDoc" />
+    <meta property="og:url" content="https://open-doc-mocha.vercel.app/" />
+    <meta property="og:title" content="OpenDoc — answers from your documents, with page-level citations" />
+    <meta property="og:description" content="Upload PDF, DOCX, Markdown or text. Ask questions. Every answer cites the page it came from, and OpenDoc abstains instead of guessing." />
+    <meta property="og:image" content="https://open-doc-mocha.vercel.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OpenDoc — answers from your documents, with page-level citations" />
+    <meta name="twitter:description" content="Open-source RAG over your own documents: hybrid retrieval, cited answers, honest abstention." />
+    <meta name="twitter:image" content="https://open-doc-mocha.vercel.app/og-image.jpg" />
     <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <title>OpenDoc</title>
+    <title>OpenDoc — Answers from your documents, with page-level citations</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "OpenDoc",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://open-doc-mocha.vercel.app/",
+        "image": "https://open-doc-mocha.vercel.app/og-image.jpg",
+        "description": "Document question answering with hybrid retrieval (dense + sparse, Reciprocal Rank Fusion), optional cross-encoder reranking and page-level source citations.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "sameAs": "https://github.com/Mukassir-Ahmed-Farooqui/open-doc"
+      }
+    </script>
     <script>
       (function () {
         try {

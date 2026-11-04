@@ -18,7 +18,7 @@ export function AppShell() {
   ]);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-bg">
+    <div className="safe-area flex h-dvh overflow-hidden bg-bg">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:shadow-lg"
