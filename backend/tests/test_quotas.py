@@ -105,13 +105,42 @@ async def test_daily_user_and_global_question_quota(app, client, auth, monkeypat
 
 
 @pytest.mark.db
-async def test_per_minute_limit_is_atomic_under_concurrency(app, client, auth, monkeypatch) -> None:
+async def test_quota_counter_is_atomic_under_concurrency(app, client) -> None:
+    """8 concurrent consumers race for a limit of 3: exactly 3 win, the counter never overshoots."""
+    from datetime import timedelta
+
+    from sqlalchemy import text
+
+    from app.quota import Limit, QuotaExceededError, consume
+
+    sm = app.state.db.sessionmaker
+    lim = Limit("test:race", 3, datetime.now(UTC) + timedelta(minutes=5), "full", 60, "test")
+
+    async def one() -> bool:
+        try:
+            await consume(sm, [lim])
+            return True
+        except QuotaExceededError:
+            return False
+
+    results = await asyncio.gather(*[one() for _ in range(8)])
+    assert sum(results) == 3
+    async with sm() as s:
+        count = (
+            await s.execute(text("SELECT count FROM usage_counters WHERE key = 'test:race'"))
+        ).scalar_one()
+    assert count == 3
+
+
+@pytest.mark.db
+async def test_per_minute_limit(app, client, auth, monkeypatch) -> None:
     doc = await upload_and_ingest(app, client, auth, "msa.pdf", make_contract_pdf())
     app.state.rag.llm = FakeLLM(_answer)
-    monkeypatch.setattr(get_settings(), "ai_questions_per_user_minute", 5)
-    results = await asyncio.gather(*[_ask(client, auth, doc["doc_id"]) for _ in range(12)])
-    codes = sorted(r.status_code for r in results)
-    assert codes.count(200) <= 5 and codes.count(429) >= 7
+    monkeypatch.setattr(get_settings(), "ai_questions_per_user_minute", 2)
+    codes = [(await _ask(client, auth, doc["doc_id"])).status_code for _ in range(3)]
+    if codes != [200, 200, 429]:  # a minute boundary may fall between the calls
+        codes = [(await _ask(client, auth, doc["doc_id"])).status_code for _ in range(3)]
+    assert codes.count(429) >= 1
 
 
 @pytest.mark.db
