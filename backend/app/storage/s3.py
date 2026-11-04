@@ -49,5 +49,22 @@ class S3Storage:
     async def delete(self, key: str) -> None:
         await asyncio.to_thread(self.client.delete_object, Bucket=self.bucket, Key=key)
 
+    async def presigned_url(
+        self, key: str, *, content_type: str, filename: str, expires_s: int = 600
+    ) -> str | None:
+        # Signing is local (no network call); the browser then fetches straight from the
+        # bucket, so large files don't pass through (or count against) the API host.
+        safe = filename.replace('"', "").encode("ascii", "ignore").decode() or "document"
+        return self.client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": self.bucket,
+                "Key": key,
+                "ResponseContentType": content_type,
+                "ResponseContentDisposition": f'inline; filename="{safe}"',
+            },
+            ExpiresIn=expires_s,
+        )
+
     async def check(self) -> None:
         await asyncio.to_thread(self.client.head_bucket, Bucket=self.bucket)

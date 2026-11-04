@@ -158,9 +158,30 @@ export class ApiClient {
   documentSummary(docId: string, signal?: AbortSignal) {
     return this.json("GET", `/documents/${encodeURIComponent(docId)}/summary`, SummaryResponseSchema, { signal });
   }
+  /**
+   * Original file bytes. Prefers a short-lived direct storage URL (big files skip the API host,
+   * which is faster and saves its bandwidth); falls back to the authenticated /download route.
+   */
   async downloadDocument(docId: string, signal?: AbortSignal): Promise<Blob> {
-    const res = await this.raw(`${this.baseUrl}/documents/${encodeURIComponent(docId)}/download`, { signal });
-    return res.blob();
+    const id = encodeURIComponent(docId);
+    try {
+      const res = await this.raw(`${this.baseUrl}/documents/${id}/file-url`, { signal });
+      const { url } = (await res.json()) as { url?: string | null };
+      if (url) {
+        const direct = await this.fetchImpl(url, { signal });
+        if (direct.ok) return await direct.blob();
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      // Older API without /file-url, bucket CORS, or a dropped transfer: use the proxy route.
+    }
+    const res = await this.raw(`${this.baseUrl}/documents/${id}/download`, { signal });
+    try {
+      return await res.blob();
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      throw networkError(err);
+    }
   }
   uploadUrl() {
     return `${this.baseUrl}/upload`;

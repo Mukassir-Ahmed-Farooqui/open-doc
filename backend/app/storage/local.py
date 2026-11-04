@@ -50,6 +50,11 @@ class LocalStorage:
         path = self._path(key)
         await asyncio.to_thread(path.unlink, True)
 
+    async def presigned_url(
+        self, key: str, *, content_type: str, filename: str, expires_s: int = 600
+    ) -> str | None:
+        return None  # no direct URL for local files; clients use /download
+
     async def check(self) -> None:
         if not self.root.is_dir():
             raise RuntimeError(f"storage root missing: {self.root}")

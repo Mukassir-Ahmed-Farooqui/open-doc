@@ -18,6 +18,11 @@ class ObjectStorage(Protocol):
     async def check(self) -> None:
         """Raise if the backend is unreachable."""
 
+    async def presigned_url(
+        self, key: str, *, content_type: str, filename: str, expires_s: int = 600
+    ) -> str | None:
+        """A short-lived direct-download URL, or None when the backend can't issue one."""
+
 
 class ObjectNotFoundError(Exception):
     pass
