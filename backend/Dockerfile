@@ -28,6 +28,8 @@ COPY --chown=app:app alembic.ini start.sh ./
 COPY --chown=app:app migrations ./migrations
 COPY --chown=app:app app ./app
 RUN chmod +x start.sh && mkdir -p /app/data && chown app:app /app/data
+# Local-storage uploads live here; a volume keeps them when the container is recreated.
+VOLUME ["/app/data"]
 USER app
 EXPOSE 8000
 # Shell form so $PORT (set by Cloud Run / Railway) is expanded.
