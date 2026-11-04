@@ -50,6 +50,36 @@ async def test_duplicate_upload_is_idempotent(app, client, auth) -> None:
     assert len((await client.get("/api/v1/documents", headers=auth)).json()) == 1
 
 
+async def test_duplicate_upload_restores_missing_file(app, client, auth) -> None:
+    """Regression: re-uploading the same bytes after the stored file vanished left the
+    viewer stuck on "File content is missing from storage"."""
+    import uuid
+
+    from app.db.models import Document
+
+    data = make_contract_pdf()
+    first = await upload_and_ingest(app, client, auth, "a.pdf", data)
+    async with app.state.db.sessionmaker() as s:
+        key = (await s.get(Document, uuid.UUID(first["doc_id"]))).storage_key
+    await app.state.storage.delete(key)
+    url = f"/api/v1/documents/{first['doc_id']}/download"
+    assert (await client.get(url, headers=auth)).status_code == 404
+    r = await client.post("/api/v1/upload", headers=auth, files={"file": ("a.pdf", data, "application/pdf")})
+    assert r.status_code == 200 and r.json()["duplicate"] is True
+    dl = await client.get(url, headers=auth)
+    assert dl.status_code == 200 and dl.content == data
+
+
+def test_relative_local_storage_dir_is_anchored_to_backend() -> None:
+    from pathlib import Path
+
+    from app.storage import resolve_local_root
+
+    backend = Path(__file__).resolve().parents[1]
+    assert resolve_local_root("./data/objects") == (backend / "data" / "objects").resolve()
+    assert resolve_local_root(str(backend)) == backend
+
+
 async def test_reingest_replaces_rows(app, client, auth) -> None:
     from app.ingestion.pipeline import ingest_document
 

@@ -14,7 +14,7 @@ from app.db.models import Chat, Document, DocumentStatus, Section
 from app.errors import AppError, not_found
 from app.ingestion.parsers import SUPPORTED_TYPES, ParseError, detect_type
 from app.schemas.documents import DocumentResponse
-from app.storage import ObjectStorage
+from app.storage import ObjectNotFoundError, ObjectStorage
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,13 @@ async def create_document(
         )
     ).scalar_one_or_none()
     if existing is not None:
+        # Same bytes again: if the stored object went missing (e.g. a wiped local dir),
+        # re-uploading repairs it instead of returning a document whose file is gone.
+        try:
+            await storage.get(existing.storage_key)
+        except ObjectNotFoundError:
+            await storage.put(existing.storage_key, data, existing.content_type)
+            logger.warning("storage_object_restored", extra={"doc_id": str(existing.id)})
         if existing.status == DocumentStatus.FAILED:
             existing.status = DocumentStatus.QUEUED
             existing.attempts = 0

@@ -69,7 +69,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             worker.start()
         logger.info(
             "startup",
-            extra={"env": settings.app_env, "embedder": embedder.name, "llm": llm.model if llm else None},
+            extra={
+                "env": settings.app_env,
+                "embedder": embedder.name,
+                "llm": llm.model if llm else None,
+                "storage": str(getattr(storage, "root", settings.storage_backend)),
+            },
         )
         try:
             yield
