@@ -58,8 +58,10 @@ services:
       S3_SECRET_ACCESS_KEY: opendoc-secret
       CORS_ORIGINS: http://localhost:5173
     ports: ["8000:8000"]
+    volumes: [objects:/app/data]  # used when STORAGE_BACKEND=local
     mem_limit: 1g
 
 volumes:
   pgdata:
   miniodata:
+  objects:

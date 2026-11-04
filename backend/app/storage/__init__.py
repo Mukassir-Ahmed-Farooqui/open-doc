@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Protocol
 
 from app.config import Settings
@@ -29,4 +30,15 @@ def build_storage(settings: Settings) -> ObjectStorage:
         return S3Storage(settings)
     from app.storage.local import LocalStorage
 
-    return LocalStorage(settings.local_storage_dir)
+    return LocalStorage(str(resolve_local_root(settings.local_storage_dir)))
+
+
+# backend/ — the directory that holds the ``app`` package.
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+
+
+def resolve_local_root(root: str) -> Path:
+    """Anchor a relative ``LOCAL_STORAGE_DIR`` to ``backend/`` instead of the process cwd,
+    so starting uvicorn from another directory never "loses" files uploaded earlier."""
+    path = Path(root).expanduser()
+    return path if path.is_absolute() else (_BACKEND_DIR / path).resolve()
