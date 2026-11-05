@@ -128,15 +128,18 @@ gcloud run deploy opendoc-api \
 * **`--min-instances 0` tradeoff:** free when idle, but the first request after idle pays a cold start (image pull, migrations, Postgres connection; models load lazily on the first query or upload). And when the instance scales to zero, an ingestion still in progress stops; the job is requeued after `WORKER_STALE_MINUTES` (15) the next time an instance runs. `--min-instances 1` removes both problems but bills an always-on instance, which leaves the free tier.
 * `--max-instances 1` keeps the per-instance rate limits and query cache coherent and keeps usage inside the free allowance. Check current free-tier allowances for instance-based billing on the [Cloud Run pricing page](https://cloud.google.com/run/pricing) before relying on them.
 
-## Render (free)
+## Render (free) + Supabase Storage (the live setup)
 
-Render's free web service is 0.1 CPU / 512 MB, spins down after 15 minutes without traffic and takes about a minute to wake ([Render free tier docs](https://render.com/docs/free)). It works for demos with these settings:
+Render's free web service is 0.1 CPU / 512 MB, spins down after 15 minutes without traffic and takes about a minute to wake ([Render free tier docs](https://render.com/docs/free)).
 
 1. *New → Web Service* → this repo, **Runtime: Docker**, **Root Directory:** `backend`, **Dockerfile path:** `./Dockerfile`, **Instance type:** Free.
 2. **Health check path:** `/ready`.
-3. Environment: the "Must set" variables above plus `RERANKER_PROVIDER=none` (512 MB). Use Neon for Postgres: Render's free Postgres expires 30 days after creation. Use R2 or another S3 bucket: the free instance has no persistent disk.
+3. Environment: the "Must set" variables above, plus `RERANKER_PROVIDER=none`, `WEB_CONCURRENCY=1`, `ONNX_THREADS=2`, `EMBEDDING_BATCH_SIZE=4`, `MALLOC_ARENA_MAX=1`. Use Neon for Postgres (Render's free Postgres expires after 30 days).
+4. Storage: create a Supabase project, a **private** bucket, and an S3 access key (*Storage → S3 Connection*). Then set `STORAGE_BACKEND=s3`, `S3_BUCKET`, `S3_ENDPOINT_URL=https://<ref>.storage.supabase.co/storage/v1/s3`, `S3_REGION` (the project region), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`.
+5. Set `CORS_ORIGINS` to the frontend origin, and on Vercel set `VITE_API_URL` to the Render URL.
+6. After merging to `main`, check that Render actually started a deploy for the new commit. If not, use *Manual Deploy* or `POST /v1/services/{id}/deploys`.
 
-Expect slow ingestion on 0.1 CPU, and a stopped worker while the service is asleep. A file uploaded just before spin-down is requeued after `WORKER_STALE_MINUTES` once the service wakes.
+Measured here: 50-page PDF ingested in about 6 minutes, peak 307 MB. A file uploaded just before spin-down is requeued after `WORKER_STALE_MINUTES` once the service wakes.
 
 ## After deploying
 

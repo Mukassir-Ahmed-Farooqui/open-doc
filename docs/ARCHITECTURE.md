@@ -128,6 +128,7 @@ Document text is data. It is placed inside `<source>` tags (a literal `</source>
 
 * Scanned PDFs (no text layer) are rejected; there is no OCR.
 * DOCX has no fixed pagination, so DOCX citations report page 1.
-* Rate limits and the query-embedding cache are per process.
+* Beta quotas (AI questions, sign-ups, documents, storage) are in Postgres and shared across instances. The auth and upload burst limits and the query-embedding cache are per process.
+* One ingestion runs at a time, so on the free tier a queue of large PDFs takes several minutes each.
 * The worker runs inside the API process. On Cloud Run with request-based billing the CPU is throttled between requests, so background ingestion needs instance-based billing (see DEPLOY.md).
 * Changing the embedding model's dimension needs a migration and re-ingestion.

@@ -16,9 +16,18 @@ OpenDoc lets each user upload PDFs, DOCX, Markdown or text files and ask questio
   <img src="https://img.shields.io/badge/FastAPI-async-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Postgres-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="Postgres + pgvector" />
   <img src="https://img.shields.io/badge/ONNX-fastembed-005CED?style=for-the-badge&logo=onnx&logoColor=white" alt="fastembed" />
-  <img src="https://img.shields.io/badge/Groq-Llama_3.3_70B-FF5500?style=for-the-badge" alt="Groq" />
+  <img src="https://img.shields.io/badge/Groq-gpt--oss--120b-FF5500?style=for-the-badge" alt="Groq" />
   <img src="https://img.shields.io/badge/React-Vite-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
 </p>
+
+<p>
+  <a href="https://open-doc-mocha.vercel.app"><b>Live demo</b></a> ·
+  <a href="https://opendoc-api.onrender.com/docs">API docs</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/BENCHMARKS.md">Benchmarks</a>
+</p>
+
+<sub>Public beta on free tiers: the API sleeps after 15 idle minutes, so the first request can take about a minute.</sub>
 
 </div>
 
@@ -30,28 +39,60 @@ One stateless FastAPI container, Postgres with pgvector, and S3-compatible objec
 
 ```mermaid
 graph LR
-    UI[React frontend] -->|JWT, SSE| API
+    UI[React PWA on Vercel] -->|JWT, SSE| API
+    UI -->|presigned GET, PDF viewer| S3
 
-    subgraph API[FastAPI container]
-        R[/api/v1 routes/] --> RAG[RAGService]
+    subgraph API[FastAPI container on Render]
+        R[/api/v1 routes/] --> Q[Quotas + kill switch]
+        Q --> RAG[RAGService]
         RAG --> HR[HybridRetriever]
         HR -->|dense: HNSW cosine| PG
         HR -->|sparse: tsvector + GIN| PG
-        HR --> RRF[RRF fusion] --> RR[cross-encoder rerank, ONNX]
+        HR --> RRF[RRF fusion] --> RR[cross-encoder rerank, ONNX, optional]
         RR --> EXP[parent-section expansion] --> LLM[Groq stream, Gemini fallback]
         R -->|upload 202| S3
-        W[In-process ingestion worker] -->|claim job SKIP LOCKED| PG
+        W[In-process ingestion worker, one job at a time] -->|claim job SKIP LOCKED| PG
         W -->|parse, chunk, embed| PG
     end
 
-    PG[(Postgres + pgvector)]
-    S3[(S3-compatible storage)]
+    PG[(Neon Postgres + pgvector)]
+    S3[(Supabase Storage, S3 API)]
 ```
 
-* **Ingestion.** Upload validates type by magic bytes, deduplicates per user, stores the file and returns 202. A Postgres-backed job queue feeds an asyncio worker in the same process: PyMuPDF / python-docx parsing with heading detection, structure-aware parent-child chunking, bge-small-en-v1.5 embeddings (fastembed, ONNX, no API key), one transactional write. Failures retry with backoff; stale jobs are requeued.
-* **Retrieval.** Dense (pgvector HNSW) and sparse (Postgres full-text) candidates fused with Reciprocal Rank Fusion, then reranked by a MiniLM cross-encoder. Comparison questions retrieve per document; summary questions sample sections across each document.
-* **Generation.** Child hits expand to their parent sections, wrapped as `<source>` blocks. Groq streams the answer (Gemini takes over if Groq fails before the first token). Only sources the model actually cites become citations. A low rerank score abstains without calling the LLM.
+* **Ingestion.** Upload checks type by magic bytes, validates the file (encrypted or damaged PDFs, page count, DOCX zip bombs), deduplicates per user, stores it and returns 202. A Postgres-backed job queue feeds an asyncio worker in the same process: PyMuPDF / python-docx parsing with heading detection, structure-aware parent-child chunking, bge-small-en-v1.5 embeddings (fastembed, ONNX, no API key), one transactional write. Only one ingestion runs at a time across all instances (Postgres advisory lock), which keeps a 512 MB instance safe. Failures retry with backoff; stale jobs are requeued.
+* **Retrieval.** Dense (pgvector HNSW) and sparse (Postgres full-text) candidates fused with Reciprocal Rank Fusion, then reranked by a MiniLM cross-encoder when memory allows. Comparison questions retrieve per document; summary questions sample sections across each document.
+* **Generation.** Child hits expand to their parent sections, wrapped as `<source>` blocks. Groq (`openai/gpt-oss-120b`) streams the answer, and Gemini takes over if Groq fails before the first token. Only sources the model actually cites become `【S#】` citations. A low relevance score abstains without calling the LLM.
+* **Files.** The PDF viewer loads the original file straight from storage through a short-lived presigned URL (`GET /documents/{id}/file-url`, 10 minutes), so large PDFs never stream through the API. `/download` stays as a fallback.
 * **Tenancy.** Every query, including the vector and full-text searches, filters on the caller's `owner_id`. Another user's document or chat is a 404.
+
+### Production deployment (public beta, ₹0)
+
+| Part | Service | Notes |
+|---|---|---|
+| Frontend | Vercel (Hobby) | React + Vite PWA, landing page for signed-out visitors, installable from Chrome on Android |
+| API + worker | Render free web service, Singapore | Docker, 512 MB, `WEB_CONCURRENCY=1`, `RERANKER_PROVIDER=none`, sleeps after 15 idle minutes |
+| Database + vectors | Neon free, pgvector 0.8 | Documents, chunks, embeddings, job queue, usage counters |
+| File storage | Supabase Storage, private bucket | S3-compatible API, presigned URLs for viewing |
+| LLM | Groq free tier | Gemini optional fallback |
+
+Measured on this setup (2026-11-04): a 50-page PDF ingested in about 6 minutes with peak memory 307 MB of 512 MB.
+
+### Public beta limits
+
+Limits are stored in Postgres, so they hold across restarts and instances. All are environment variables (see `.env.example`).
+
+| Limit | Default | Response when hit |
+|---|---|---|
+| File size | 10 MB | 413 |
+| Pages per PDF | 50 | 422 |
+| Documents per user | 5 | 429 |
+| Storage per user | 25 MB | 429 |
+| AI questions per user | 5 per minute, 30 per day | 429 with `Retry-After` |
+| AI questions across all users | 300 per day | 429 with `Retry-After` |
+| Sign-ups per IP | 3 per day | 429 |
+| Kill switch | `AI_ENABLED=false` | 503 on AI routes; documents stay available |
+
+Daily windows reset at UTC midnight. A question that fails on the LLM side is refunded.
 
 Details, the data model and the rejected alternatives (Qdrant, LangGraph, docling, Redis queues, GraphRAG) are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -63,15 +104,21 @@ Measured on 38 labelled questions over 8 contracts, all documents selected ([ful
 |---|---|---|---|---|---|
 | Dense only | 0.474 | 0.500 | 0.493 | 0.519 | 17.2 ms |
 | Hybrid RRF | 0.447 | 0.684 | 0.547 | 0.614 | 54.6 ms |
-| **Hybrid RRF + rerank (default)** | **0.605** | **0.763** | **0.663** | **0.695** | 900.2 ms |
+| **Hybrid RRF + rerank (default on 1 GB)** | **0.605** | **0.763** | **0.663** | **0.695** | 900.2 ms |
 
-Generation metrics (faithfulness, citation accuracy, time to first token) have not been run yet.
+Production on 512 MB runs without the reranker, which corresponds to the Hybrid RRF row.
+
+Generation, 46 questions on the live Groq API (38 answerable, 8 out of scope), judged by the same model, so treat these as indicative:
+
+| Faithfulness | Gold-cited rate | Abstention recall | False abstention | TTFT p50 / p95 |
+|---|---|---|---|---|
+| 97.3% | 94.6% | 100% (8/8) | 2.6% | 1.94 s / 3.75 s |
 
 ## Repository layout
 
 ```
-backend/            FastAPI app, Alembic migrations, tests, Dockerfile, railway.json
-frontend/           React + Vite client
+backend/            FastAPI app, Alembic migrations, tests, Dockerfile
+frontend/           React + Vite PWA (landing, library, chat, PDF viewer), deployed on Vercel
 scripts/eval/       corpus fetcher, eval-set builder, retrieval and generation benchmarks
 tests/evaluation/   labelled questions; tests/fixtures/ sample contract
 docs/               ARCHITECTURE.md, API.md, BENCHMARKS.md, DEPLOY.md
@@ -140,7 +187,7 @@ GROQ_API_KEY=... python scripts/eval/run_generation.py
 
 ## Deployment
 
-The backend runs on Railway (1 GB, or 512 MB with `RERANKER_PROVIDER=none`), Google Cloud Run (instance-based billing so the in-process worker keeps running) or Render's free tier, with Neon for Postgres and a Railway bucket or Cloudflare R2 for files. Step-by-step instructions, the full environment variable list, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
+The live setup is Vercel + Render free + Neon + Supabase Storage, described above. Railway and Google Cloud Run also work. Step-by-step guides, every environment variable, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Documentation
 
@@ -149,7 +196,7 @@ The backend runs on Railway (1 GB, or 512 MB with `RERANKER_PROVIDER=none`), Goo
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data model, ingestion and retrieval pipelines, decisions and rejected alternatives, known limits |
 | [docs/API.md](docs/API.md) | Endpoints, error envelope, streaming format, contract changes vs the previous backend |
 | [docs/BENCHMARKS.md](docs/BENCHMARKS.md) | Retrieval results for every chunking x retrieval x scope configuration, abstention calibration, ingest timings, memory |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | Railway, Cloud Run and Render guides, environment variables, migrations, health checks |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Render + Supabase (live setup), Railway and Cloud Run guides, environment variables, migrations, health checks |
 
 ## License
 
