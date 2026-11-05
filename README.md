@@ -200,4 +200,4 @@ The live setup is Vercel + Render free + Neon + Supabase Storage, described abov
 
 ## License
 
-This project is provided for educational and demonstration purposes. Contact the repository owner for licensing details. The benchmark corpus comes from CUAD (CC BY 4.0, The Atticus Project).
+[MIT](LICENSE). The benchmark corpus comes from CUAD (CC BY 4.0, The Atticus Project).
