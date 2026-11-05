@@ -41,6 +41,7 @@ Emails are stored lower-cased. Login and register are rate limited (`RATE_LIMIT_
 | POST | `/upload` | multipart `file`. PDF, DOCX, TXT, MD up to `MAX_UPLOAD_MB`. **202** with the document in `queued` state; ingestion runs in the background. Re-uploading identical bytes returns the existing document with **200** and `duplicate: true` |
 | GET | `/documents` | All of the caller's documents, newest first, every status |
 | GET | `/documents/{doc_id}` | One document; poll this for `status` / `progress` |
+| GET | `/documents/{doc_id}/file-url` | `{url, expires_in}`: a presigned storage URL (600 s, inline) for the viewer. `url` is null with local storage; use `/download` then |
 | GET | `/documents/{doc_id}/download` | Original bytes, `Content-Disposition: attachment` |
 | DELETE | `/documents/{doc_id}` | Hard delete: row, sections, chunks, stored object; the id is removed from the caller's chats. `{status: "deleted", doc_id}` |
 | GET | `/documents/{doc_id}/summary` | Lazy summary: one LLM call on first request, cached afterwards. 409 until the document is `ready`; 503 without an LLM |
