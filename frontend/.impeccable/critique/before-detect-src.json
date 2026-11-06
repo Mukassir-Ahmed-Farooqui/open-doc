@@ -1,0 +1,56 @@
+[
+  {
+    "antipattern": "bounce-easing",
+    "name": "Bounce or elastic easing",
+    "description": "Bounce and elastic easing feel dated and tacky. Real objects decelerate smoothly — use exponential easing (ease-out-quart/quint/expo) instead.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "/workspace/work/open-doc/frontend/src/components/chat/Messages.tsx",
+    "line": 125,
+    "snippet": "animate-bounce (Tailwind)",
+    "advisory": true,
+    "importedBy": [
+      "Messages.test.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/workspace/work/open-doc/frontend/src/index.css",
+    "line": 212,
+    "snippet": "border-l-2",
+    "importedBy": [
+      "main.tsx"
+    ]
+  },
+  {
+    "antipattern": "gradient-text",
+    "name": "Gradient text",
+    "description": "Gradient text is decorative rather than meaningful — a common AI tell, especially on headings and metrics. Use solid colors for text.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/workspace/work/open-doc/frontend/src/pages/landing/landing.css",
+    "line": 30,
+    "snippet": "background-clip: text + gradient",
+    "importedBy": [
+      "LandingPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "codex-grid-background",
+    "name": "Decorative grid-line background",
+    "description": "A decorative grid or line-field background drawn with hairline linear-gradient layers tiled by a fixed pixel cell is a recurring generated-UI signature. Reserve grid overlays for actual canvas, map, blueprint, or measurement surfaces; elsewhere use product structure or a plain surface.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "/workspace/work/open-doc/frontend/src/pages/landing/landing.css",
+    "line": 45,
+    "snippet": "two-axis grid-line gradient background",
+    "advisory": true,
+    "importedBy": [
+      "LandingPage.tsx"
+    ]
+  }
+]
