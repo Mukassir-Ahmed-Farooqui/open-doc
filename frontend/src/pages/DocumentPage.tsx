@@ -72,7 +72,7 @@ export function DocumentPage() {
         <Button variant="ghost" size="icon-sm" onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft />
         </Button>
-        <DocIcon filename={d.filename} contentType={d.content_type} className="max-sm:hidden" />
+        <DocIcon filename={d.filename} contentType={d.content_type} className="max-lg:hidden" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold">{d.filename}</h1>
           <p className="truncate font-mono text-2xs text-fg-subtle">
@@ -81,10 +81,10 @@ export function DocumentPage() {
             {d.status === "ready" && d.section_count ? ` · ${d.section_count} sections` : ""}
           </p>
         </div>
-        <StatusBadge status={d.status} progress={d.progress} className="max-md:hidden" />
+        <StatusBadge status={d.status} progress={d.progress} className="max-lg:hidden" />
         {d.status === "ready" && (
           <Link to={`/chat?docs=${d.doc_id}`} className={buttonClass("primary", "md", "max-sm:hidden")}>
-            <MessageSquarePlus aria-hidden /> Ask this document
+            <MessageSquarePlus aria-hidden /> Ask<span className="max-lg:hidden">&nbsp;this document</span>
           </Link>
         )}
         <Button variant="ghost" size="icon-sm" onClick={() => downloadToDisk(d)} aria-label="Download original" className="max-sm:hidden">

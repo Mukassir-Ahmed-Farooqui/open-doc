@@ -98,7 +98,7 @@ export function DashboardPage() {
               id="recent-docs"
               title="Recent documents"
               action={
-                <Link to="/documents" className="inline-flex min-h-8 items-center gap-1 text-sm text-fg-muted hover:text-fg">
+                <Link to="/documents" className="inline-flex min-h-8 items-center gap-1 text-sm text-fg-muted hover:text-fg pointer-coarse:min-h-11">
                   Library <ArrowRight className="size-3.5" aria-hidden />
                 </Link>
               }
@@ -129,7 +129,7 @@ export function DashboardPage() {
               id="recent-chats"
               title="Recent conversations"
               action={
-                <Link to="/chat" className="inline-flex min-h-8 items-center gap-1 text-sm text-fg-muted hover:text-fg">
+                <Link to="/chat" className="inline-flex min-h-8 items-center gap-1 text-sm text-fg-muted hover:text-fg pointer-coarse:min-h-11">
                   New question <ArrowRight className="size-3.5" aria-hidden />
                 </Link>
               }

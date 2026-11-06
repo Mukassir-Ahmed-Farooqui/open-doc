@@ -185,14 +185,14 @@ function Hero() {
               Sign in
             </Link>
           </div>
-          <p className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-subtle">
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 text-sm text-fg-subtle">
             <span>Free</span>
             <span aria-hidden>·</span>
-            <a href={LICENSE} target="_blank" rel="noreferrer" className="underline-offset-4 hover:text-fg hover:underline">
+            <a href={LICENSE} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center underline-offset-4 hover:text-fg hover:underline">
               MIT open source
             </a>
             <span aria-hidden>·</span>
-            <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-fg hover:underline">
+            <a href={REPO} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 underline-offset-4 hover:text-fg hover:underline">
               <GitHubMark className="size-3.5" /> GitHub
             </a>
           </p>
@@ -293,7 +293,7 @@ function Benchmarks() {
             </div>
           ))}
         </dl>
-        <p className="mt-6 max-w-3xl text-sm leading-6 text-fg-muted">
+        <p className="mt-6 max-w-2xl text-sm leading-6 text-fg-muted">
           46 questions over 8 contracts (7 from CUAD, CC BY 4.0): 38 answerable, 8 out of scope. Run on the live Groq API with openai/gpt-oss-120b.
           All three scores are <strong className="font-semibold text-fg">LLM-judged by the same model</strong> that wrote the answers, so treat them as
           indicative, not as an independent evaluation.

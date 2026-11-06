@@ -75,7 +75,7 @@ export function SourcePanel({
                   !isActive && "line-clamp-3 text-fg-muted",
                 )}
               >
-                <span className={cn("box-decoration-clone rounded-xs px-0.5", isActive && "bg-evidence")}>{c.snippet}</span>
+                <span className={cn("box-decoration-clone rounded-xs px-0.5 transition-[background-color] duration-300", isActive && "bg-evidence")}>{c.snippet}</span>
               </blockquote>
               <Link
                 to={viewerHref(c)}

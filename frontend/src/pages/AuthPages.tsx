@@ -13,7 +13,7 @@ function AuthLayout({ title, subtitle, children, footer }: { title: string; subt
     <div className="safe-area grid min-h-dvh bg-bg lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="flex flex-col px-5 sm:px-10">
         <header className="flex h-16 items-center">
-          <Link to="/" aria-label="OpenDoc home" className="rounded-md">
+          <Link to="/" aria-label="OpenDoc home" className="flex min-h-11 items-center rounded-md">
             <Logo />
           </Link>
         </header>
@@ -96,7 +96,7 @@ export function LoginPage() {
       footer={
         <>
           New to OpenDoc?{" "}
-          <Link to="/register" className="font-medium text-accent hover:underline">
+          <Link to="/register" className="inline-flex min-h-11 items-center font-medium text-accent-soft-fg underline-offset-4 hover:underline">
             Create an account
           </Link>
         </>
@@ -167,7 +167,7 @@ export function RegisterPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-accent hover:underline">
+          <Link to="/login" className="inline-flex min-h-11 items-center font-medium text-accent-soft-fg underline-offset-4 hover:underline">
             Sign in
           </Link>
         </>
