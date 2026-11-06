@@ -67,12 +67,12 @@ export default function PdfViewer({
     requestAnimationFrame(() => wrapRef.current?.querySelector(".pdf-hl")?.scrollIntoView({ block: "center", behavior: "smooth" }));
   }, [normSnippet]);
 
-  const pageWidth = width ? Math.min(width - 32, 900) * ZOOMS[zoomIdx] : undefined;
+  const pageWidth = width ? Math.min(width - (width < 640 ? 24 : 48), 880) * ZOOMS[zoomIdx] : undefined;
   const fileProp = useMemo(() => file, [file]);
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-b border-line bg-surface px-3">
+      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-line bg-surface-2 px-2 sm:px-4">
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon-sm" onClick={() => go(page - 1)} disabled={page <= 1} aria-label="Previous page">
             <ChevronLeft />
@@ -86,7 +86,7 @@ export default function PdfViewer({
           <Button variant="ghost" size="icon-sm" onClick={() => setZoomIdx((z) => Math.max(0, z - 1))} disabled={zoomIdx === 0} aria-label="Zoom out">
             <Minus />
           </Button>
-          <span className="w-11 text-center text-xs tabular-nums text-fg-muted" aria-live="polite">
+          <span className="w-12 text-center font-mono text-2xs tabular-nums text-fg-muted" aria-live="polite">
             {Math.round(ZOOMS[zoomIdx] * 100)}%
           </span>
           <Button variant="ghost" size="icon-sm" onClick={() => setZoomIdx((z) => Math.min(ZOOMS.length - 1, z + 1))} disabled={zoomIdx === ZOOMS.length - 1} aria-label="Zoom in">
@@ -94,7 +94,7 @@ export default function PdfViewer({
           </Button>
         </div>
       </div>
-      <div ref={wrapRef} className="min-h-0 flex-1 overflow-auto bg-surface-3/50">
+      <div ref={wrapRef} className="min-h-0 flex-1 overflow-auto bg-surface-3">
         <Document
           file={fileProp}
           onLoadSuccess={(pdf) => {
@@ -103,7 +103,7 @@ export default function PdfViewer({
           }}
           loading={<PageSkeleton />}
           error={<ErrorState error={new Error("This PDF could not be rendered. You can still download it.")} title="Can't display PDF" />}
-          className="flex justify-center p-4"
+          className="flex justify-center p-3 sm:p-6"
         >
           {pageWidth && (
             <Page
@@ -113,7 +113,7 @@ export default function PdfViewer({
               customTextRenderer={textRenderer}
               onRenderTextLayerSuccess={onTextLayer}
               loading={<PageSkeleton />}
-              className="overflow-hidden rounded-sm bg-white shadow-lg"
+              className="overflow-hidden rounded-xs bg-white shadow-sm"
             />
           )}
         </Document>
@@ -142,7 +142,7 @@ function PageInput({ page, numPages, onGo }: { page: number; numPages: number | 
         const n = parseInt(value, 10);
         if (Number.isFinite(n)) onGo(n);
       }}
-      className="flex items-center gap-1 text-sm text-fg-muted"
+      className="flex items-center gap-1.5 text-sm text-fg-muted"
     >
       <label htmlFor="pdf-page" className="sr-only">
         Page
@@ -153,9 +153,9 @@ function PageInput({ page, numPages, onGo }: { page: number; numPages: number | 
         value={value}
         onChange={(e) => setValue(e.target.value.replace(/\D/g, ""))}
         onBlur={() => setValue(String(page))}
-        className="h-7 w-11 rounded-md border border-line bg-surface text-center text-sm tabular-nums focus-visible:border-accent focus-visible:outline-none"
+        className="h-8 w-12 rounded-md border border-line-strong bg-surface text-center font-mono text-sm tabular-nums focus-visible:border-accent focus-visible:outline-none pointer-coarse:h-11"
       />
-      <span className="tabular-nums">/ {numPages ?? "–"}</span>
+      <span className="font-mono text-sm tabular-nums">/ {numPages ?? "–"}</span>
     </form>
   );
 }

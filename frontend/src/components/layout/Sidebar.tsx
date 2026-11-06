@@ -1,7 +1,8 @@
 import { FolderOpen, Home, LogOut, Moon, Plus, Search, Settings, Sun } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
-import { Button, buttonClass } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
+import { buttonClass } from "@/components/ui/buttonStyles";
 import { Kbd } from "@/components/ui/Kbd";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/Menu";
 import { cn } from "@/lib/cn";
@@ -10,7 +11,7 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { ConversationList } from "./ConversationList";
 import { Logo } from "./Logo";
 
-export const NAV = [
+const NAV = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/documents", label: "Library", icon: FolderOpen, end: false },
   { to: "/settings", label: "Settings", icon: Settings, end: false },

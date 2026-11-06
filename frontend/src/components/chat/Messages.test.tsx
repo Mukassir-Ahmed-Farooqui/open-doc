@@ -30,7 +30,11 @@ describe("AssistantMessage", () => {
   });
 
   it("renders an explicit insufficient-evidence state", () => {
-    render(<AssistantMessage message={{ ...base, content: INSUFFICIENT_EVIDENCE, citations: [] }} activeSource={null} onCite={vi.fn()} isLast />);
+    render(
+      <MemoryRouter>
+        <AssistantMessage message={{ ...base, content: INSUFFICIENT_EVIDENCE, citations: [] }} activeSource={null} onCite={vi.fn()} isLast />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Not enough evidence")).toBeInTheDocument();
     expect(screen.queryByLabelText("Sources")).toBeNull();
   });

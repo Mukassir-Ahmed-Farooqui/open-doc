@@ -10,23 +10,26 @@ export function DocumentRow({ doc }: { doc: DocumentItem }) {
     formatBytes(doc.file_size_bytes),
     doc.status === "ready" && doc.num_pages ? `${doc.num_pages} ${doc.num_pages === 1 ? "page" : "pages"}` : null,
     doc.status === "ready" && doc.section_count ? `${doc.section_count} sections` : null,
-    formatRelative(doc.created_at),
   ].filter(Boolean);
   return (
-    <li className="group relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-2/60">
+    <li className="group relative flex items-center gap-4 py-3.5 transition-colors sm:px-3 sm:hover:bg-surface-2/70">
       <DocIcon filename={doc.filename} contentType={doc.content_type} />
       <div className="min-w-0 flex-1">
         <Link
           to={`/documents/${doc.doc_id}`}
-          className="block truncate text-base font-medium after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
+          className="block truncate text-base font-medium text-fg after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-has-[a:focus-visible]:underline"
         >
           {doc.filename}
         </Link>
-        <p className="truncate text-xs text-fg-subtle">{meta.join(" · ")}</p>
-        {doc.status === "processing" && <ProgressBar className="mt-1.5 max-w-60" value={doc.progress} label="Ingestion progress" />}
-        {doc.status === "failed" && doc.error && <p className="mt-0.5 truncate text-xs text-danger">{doc.error}</p>}
+        <p className="mt-0.5 truncate font-mono text-2xs text-fg-subtle">
+          {meta.join(" · ")}
+          <span className="sm:hidden"> · {formatRelative(doc.created_at)}</span>
+        </p>
+        {doc.status === "processing" && <ProgressBar className="mt-2 max-w-64" value={doc.progress} label={`Indexing ${doc.filename}`} />}
+        {doc.status === "failed" && doc.error && <p className="mt-1 line-clamp-2 text-xs text-danger">{doc.error}</p>}
       </div>
-      <StatusBadge status={doc.status} progress={doc.progress} className="relative" />
+      <span className="hidden w-28 shrink-0 text-right text-xs text-fg-subtle sm:block">{formatRelative(doc.created_at)}</span>
+      <StatusBadge status={doc.status} progress={doc.progress} className="relative w-24 shrink-0 justify-end max-sm:w-auto" />
       <div className="relative">
         <DocumentActions doc={doc} />
       </div>

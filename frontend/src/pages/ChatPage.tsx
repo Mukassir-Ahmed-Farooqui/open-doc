@@ -1,12 +1,12 @@
 import * as RD from "@radix-ui/react-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FolderOpen, MessageSquare, Upload } from "lucide-react";
+import { ArrowRight, FolderOpen, Upload } from "lucide-react";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Composer } from "@/components/chat/Composer";
 import { Markdown } from "@/components/chat/Markdown";
-import { AssistantMessage, StreamingAnswer, TurnError, UserBubble } from "@/components/chat/Messages";
+import { AssistantMessage, QuestionHeading, StreamingAnswer, TurnError } from "@/components/chat/Messages";
 import { ScopePicker } from "@/components/chat/ScopePicker";
 import { SourcePanel } from "@/components/chat/SourcePanel";
 import { useUploads } from "@/components/documents/UploadProvider";
@@ -22,7 +22,7 @@ import type { Chat, ChatDetail, SummaryStyle } from "@/lib/api/schemas";
 import { orderedCitations } from "@/lib/citations";
 
 const STARTERS = [
-  "Summarize the key points of these documents.",
+  "Summarise the key points of these documents.",
   "What obligations, deadlines or dates are mentioned?",
   "List the main risks or open issues raised.",
 ];
@@ -119,9 +119,18 @@ function ChatView({
   const liveTurn = turn && turn.chatId === chatId ? turn : null;
   const lastUserQuestion = [...messages].reverse().find((m) => m.role === "user")?.content;
 
-  // Sources panel follows the selected chip.
-  const sourceMessage = source ? messages.find((m) => m.id === source.messageId) : undefined;
-  const sourceList = sourceMessage ? orderedCitations(sourceMessage.content, sourceMessage.citations) : [];
+  // Sources: the rail (wide screens) follows the selected chip, defaulting to the latest cited answer.
+  const lastCited = useMemo(
+    () => [...messages].reverse().find((m) => m.role === "assistant" && (m.citations?.length ?? 0) > 0),
+    [messages],
+  );
+  const railMessage = (source ? messages.find((m) => m.id === source.messageId) : undefined) ?? lastCited;
+  const railList = useMemo(
+    () => (railMessage ? orderedCitations(railMessage.content, railMessage.citations) : []),
+    [railMessage],
+  );
+  const railActive = source && railMessage && source.messageId === railMessage.id ? source.sourceId : null;
+  const sheetOpen = !isWide && !!source && railList.length > 0;
 
   // Auto-scroll: stick to the bottom unless the reader scrolled up.
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -179,15 +188,21 @@ function ChatView({
   }
 
   const showEmpty = !chatId || (chat.data && messages.length === 0 && !liveTurn);
+  const firstUserId = messages.find((m) => m.role === "user")?.id;
+  const showRail = isWide && railList.length > 0;
 
   return (
     <div className="flex h-full">
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line px-4 max-md:hidden">
-          <MessageSquare className="size-4 text-fg-subtle" aria-hidden />
-          <h1 className="truncate text-sm font-medium">
-            {chatId ? (chat.data?.title ?? <Skeleton className="h-4 w-40" />) : "New chat"}
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4 max-md:h-12 sm:px-6">
+          <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-fg">
+            {chatId ? (chat.data?.title ?? <Skeleton className="h-4 w-40" />) : "New question"}
           </h1>
+          {validScope.length > 0 && (
+            <span className="shrink-0 font-mono text-2xs text-fg-subtle">
+              {validScope.length} {validScope.length === 1 ? "document" : "documents"} in scope
+            </span>
+          )}
         </header>
 
         <div
@@ -199,21 +214,21 @@ function ChatView({
           }}
         >
           {chatId && chat.isLoading ? (
-            <div className="mx-auto max-w-3xl space-y-8 px-4 py-10" role="status" aria-label="Loading conversation">
-              <Skeleton className="ml-auto h-10 w-2/3 rounded-2xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-3.5" />
-                <Skeleton className="h-3.5" />
-                <Skeleton className="h-3.5 w-3/4" />
+            <div className="mx-auto max-w-[46rem] space-y-6 px-4 py-12 sm:px-6" role="status" aria-label="Loading conversation">
+              <Skeleton className="h-7 w-2/3" />
+              <div className="space-y-2.5">
+                <Skeleton className="h-4" />
+                <Skeleton className="h-4" />
+                <Skeleton className="h-4 w-3/4" />
               </div>
             </div>
           ) : showEmpty ? (
-            <div className="mx-auto flex h-full max-w-2xl flex-col justify-center px-4 py-10">
+            <div className="mx-auto flex min-h-full max-w-[46rem] flex-col justify-center px-4 py-10 sm:px-6">
               {!docs.isLoading && !hasDocs ? (
                 <EmptyState
                   icon={<FolderOpen />}
                   title="Upload a document to start"
-                  description="OpenDoc answers only from your documents, with citations to the exact page."
+                  description="OpenDoc answers only from your documents, and every claim cites the page it came from."
                   action={
                     <Button variant="primary" onClick={openPicker}>
                       <Upload /> Upload documents
@@ -221,41 +236,45 @@ function ChatView({
                   }
                 />
               ) : (
-                <div className="animate-fade-in space-y-6">
-                  <div className="text-center">
-                    <h2 className="text-2xl font-semibold tracking-tight">What do you want to know?</h2>
-                    <p className="mt-1.5 text-sm text-fg-muted">
-                      Answers are grounded in{" "}
-                      {validScope.length === 1 ? "the selected document" : `${validScope.length} selected documents`} and cite their sources.
-                    </p>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-3">
-                    {STARTERS.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        disabled={!!disabledReason || isStreaming || createChat.isPending}
-                        onClick={() => ask(s)}
-                        className="rounded-xl border border-line bg-surface p-3 text-left text-sm text-fg-muted shadow-xs transition-colors hover:border-line-strong hover:text-fg disabled:opacity-50"
-                      >
-                        {s}
-                      </button>
+                <div className="animate-rise-in">
+                  <h2 className="font-serif text-3xl font-semibold tracking-[-0.015em] text-fg sm:text-4xl">What do you want to find out?</h2>
+                  <p className="mt-3 max-w-lg text-base text-fg-muted">
+                    Answers come only from{" "}
+                    {validScope.length === 1 ? "the selected document" : `the ${validScope.length} selected documents`}. Each claim carries a
+                    numbered source you can open at the exact page.
+                  </p>
+                  <ul className="mt-8 divide-y divide-line border-y border-line" aria-label="Suggested questions">
+                    {STARTERS.map((q) => (
+                      <li key={q}>
+                        <button
+                          type="button"
+                          disabled={!!disabledReason || isStreaming || createChat.isPending}
+                          onClick={() => ask(q)}
+                          className="group flex min-h-12 w-full items-center justify-between gap-4 py-3 text-left font-serif text-lg text-fg-muted transition-colors hover:text-fg disabled:opacity-50"
+                        >
+                          {q}
+                          <ArrowRight className="size-4 shrink-0 text-fg-subtle transition-transform group-hover:translate-x-0.5" aria-hidden />
+                        </button>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                   {readyIds.length === 0 && (docs.data?.length ?? 0) > 0 && (
-                    <p className="text-center text-xs text-fg-subtle">
-                      Waiting for indexing to finish — check progress in the{" "}
-                      <Link to="/documents" className="text-accent hover:underline">library</Link>.
+                    <p className="mt-4 text-sm text-fg-muted">
+                      Waiting for indexing to finish. Progress is in the{" "}
+                      <Link to="/documents" className="font-medium text-accent-soft-fg underline">
+                        library
+                      </Link>
+                      .
                     </p>
                   )}
                 </div>
               )}
             </div>
           ) : (
-            <div className="mx-auto max-w-3xl space-y-8 px-4 py-8" aria-live="polite">
+            <div className="mx-auto max-w-[46rem] px-4 pt-10 pb-12 sm:px-6" aria-live="polite">
               {messages.map((m, i) =>
                 m.role === "user" ? (
-                  <UserBubble key={m.id} content={m.content} />
+                  <QuestionHeading key={m.id} content={m.content} first={m.id === firstUserId} />
                 ) : (
                   <AssistantMessage
                     key={m.id}
@@ -273,14 +292,14 @@ function ChatView({
               )}
               {liveTurn && (
                 <>
-                  {liveTurn.showQuestion && <UserBubble content={liveTurn.question} />}
+                  {liveTurn.showQuestion && <QuestionHeading content={liveTurn.question} first={!firstUserId} />}
                   {liveTurn.status === "streaming" && (
-                    <StreamingAnswer text={liveTurn.answer} phase={liveTurn.meta ? "writing" : "retrieving"} />
+                    <StreamingAnswer text={liveTurn.answer} meta={liveTurn.meta} scopeCount={validScope.length} />
                   )}
                   {liveTurn.status === "stopped" && (
-                    <div className="space-y-2">
+                    <div className="mt-5 space-y-2">
                       {liveTurn.answer && <StreamingAnswerStatic text={liveTurn.answer} />}
-                      <p className="text-xs text-fg-subtle">Stopped. This partial answer wasn't saved.</p>
+                      <p className="text-sm text-fg-subtle">Stopped. This partial answer wasn't saved.</p>
                     </div>
                   )}
                   {liveTurn.status === "error" && <TurnError error={liveTurn.error} onRetry={() => ask(liveTurn.question)} />}
@@ -290,49 +309,53 @@ function ChatView({
           )}
         </div>
 
-        <div className="shrink-0 px-3 pb-3 sm:px-4 sm:pb-4">
-          <div className="mx-auto max-w-3xl">{composer}</div>
-          <p className="mx-auto mt-1.5 max-w-3xl text-center text-2xs text-fg-subtle">
-            Answers come only from your documents. Check citations for anything important.
+        <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
+          <div className="mx-auto max-w-[46rem]">{composer}</div>
+          <p className="mx-auto mt-2 max-w-[46rem] text-center text-2xs text-fg-subtle max-sm:hidden">
+            Answers come only from your documents. Open the cited page for anything that matters.
           </p>
         </div>
       </div>
 
-      {source && sourceList.length > 0 &&
-        (isWide ? (
-          <aside className="w-96 shrink-0 border-l border-line bg-surface animate-fade-in" aria-label="Sources">
-            <SourcePanel
-              citations={sourceList}
-              active={source.sourceId}
-              onSelect={(id) => setSource({ ...source, sourceId: id })}
-              onClose={() => setSource(null)}
-            />
-          </aside>
-        ) : (
-          <RD.Root open onOpenChange={(o) => !o && setSource(null)}>
-            <RD.Portal>
-              <RD.Overlay className="fixed inset-0 z-40 bg-black/40 animate-fade-in" />
-              <RD.Content className="fixed inset-y-0 right-0 z-50 w-[min(26rem,92vw)] border-l border-line bg-surface shadow-lg animate-slide-in-right focus:outline-none">
-                <RD.Title className="sr-only">Sources</RD.Title>
-                <RD.Description className="sr-only">Cited passages for this answer</RD.Description>
+      {showRail && (
+        <aside className="w-[22rem] shrink-0 border-l border-line bg-surface animate-fade-in" aria-label="Sources">
+          <SourcePanel
+            citations={railList}
+            active={railActive}
+            onSelect={(id) => setSource({ messageId: railMessage!.id, sourceId: id })}
+            onClose={source ? () => setSource(null) : undefined}
+            closeLabel="Clear selected source"
+          />
+        </aside>
+      )}
+      {sheetOpen && (
+        <RD.Root open onOpenChange={(o) => !o && setSource(null)}>
+          <RD.Portal>
+            <RD.Overlay className="fixed inset-0 z-40 bg-[oklch(0.15_0.02_275/0.45)] animate-fade-in" />
+            <RD.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82dvh] flex-col rounded-t-xl border-t border-line bg-surface shadow-lg animate-slide-in-up focus:outline-none md:inset-x-auto md:inset-y-0 md:right-0 md:max-h-none md:w-[min(26rem,92vw)] md:rounded-none md:border-t-0 md:border-l md:animate-slide-in-right">
+              <RD.Title className="sr-only">Sources</RD.Title>
+              <RD.Description className="sr-only">Cited passages for this answer</RD.Description>
+              <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-line-strong md:hidden" aria-hidden />
+              <div className="min-h-0 flex-1">
                 <SourcePanel
-                  citations={sourceList}
-                  active={source.sourceId}
-                  onSelect={(id) => setSource({ ...source, sourceId: id })}
+                  citations={railList}
+                  active={railActive}
+                  onSelect={(id) => setSource({ messageId: railMessage!.id, sourceId: id })}
                   onClose={() => setSource(null)}
                 />
-              </RD.Content>
-            </RD.Portal>
-          </RD.Root>
-        ))}
+              </div>
+            </RD.Content>
+          </RD.Portal>
+        </RD.Root>
+      )}
     </div>
   );
 }
 
 function StreamingAnswerStatic({ text }: { text: string }) {
   return (
-    <div className="opacity-80">
-      <Markdown content={text} citations={new Map()} />
+    <div className="max-w-[68ch] opacity-80">
+      <Markdown variant="note" content={text} citations={new Map()} />
     </div>
   );
 }

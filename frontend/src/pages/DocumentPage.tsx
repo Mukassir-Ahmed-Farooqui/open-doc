@@ -1,10 +1,12 @@
-import { ArrowLeft, Download, MessageSquarePlus, PanelRightClose, PanelRightOpen, Sparkles } from "lucide-react";
+import * as RD from "@radix-ui/react-dialog";
+import { ArrowLeft, Download, MessageSquarePlus, PanelRightClose, PanelRightOpen, Sparkles, X } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Markdown } from "@/components/chat/Markdown";
 import { DocIcon } from "@/components/documents/DocIcon";
 import { DocumentActions } from "@/components/documents/DocumentActions";
 import { Button } from "@/components/ui/Button";
+import { buttonClass } from "@/components/ui/buttonStyles";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/States";
 import { ProgressBar, StatusBadge } from "@/components/ui/StatusBadge";
@@ -13,7 +15,6 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/instance";
 import { ApiError, errorMessage } from "@/lib/api/errors";
 import type { DocumentItem } from "@/lib/api/schemas";
-import { cn } from "@/lib/cn";
 import { docKind, formatBytes, formatDateTime } from "@/lib/format";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -67,28 +68,26 @@ export function DocumentPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 sm:px-4">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-2 sm:gap-3 sm:px-4">
         <Button variant="ghost" size="icon-sm" onClick={() => navigate(-1)} aria-label="Back">
           <ArrowLeft />
         </Button>
-        <DocIcon filename={d.filename} contentType={d.content_type} />
+        <DocIcon filename={d.filename} contentType={d.content_type} className="max-sm:hidden" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold">{d.filename}</h1>
-          <p className="truncate text-xs text-fg-subtle">
+          <p className="truncate font-mono text-2xs text-fg-subtle">
             {formatBytes(d.file_size_bytes)}
             {d.num_pages ? ` · ${d.num_pages} ${d.num_pages === 1 ? "page" : "pages"}` : ""}
+            {d.status === "ready" && d.section_count ? ` · ${d.section_count} sections` : ""}
           </p>
         </div>
-        <StatusBadge status={d.status} progress={d.progress} className="max-sm:hidden" />
+        <StatusBadge status={d.status} progress={d.progress} className="max-md:hidden" />
         {d.status === "ready" && (
-          <Link
-            to={`/chat?docs=${d.doc_id}`}
-            className="inline-flex h-8 items-center gap-2 rounded-md bg-accent px-3 text-sm font-medium text-accent-fg shadow-xs hover:bg-accent-hover max-sm:hidden"
-          >
-            <MessageSquarePlus className="size-4" aria-hidden /> Ask
+          <Link to={`/chat?docs=${d.doc_id}`} className={buttonClass("primary", "md", "max-sm:hidden")}>
+            <MessageSquarePlus aria-hidden /> Ask this document
           </Link>
         )}
-        <Button variant="ghost" size="icon-sm" onClick={() => downloadToDisk(d)} aria-label="Download original">
+        <Button variant="ghost" size="icon-sm" onClick={() => downloadToDisk(d)} aria-label="Download original" className="max-sm:hidden">
           <Download />
         </Button>
         <Button
@@ -102,6 +101,26 @@ export function DocumentPage() {
         </Button>
         <DocumentActions doc={d} onDeleted={() => navigate("/documents", { replace: true })} />
       </header>
+      {highlight && (
+        <div className="flex shrink-0 items-start gap-3 border-b border-line bg-surface px-4 py-3 sm:px-6">
+          <span className="mt-1.5 h-3 w-1 shrink-0 rounded-full bg-evidence-strong" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-fg-muted">Cited passage · page {page}</p>
+            <p className="mt-0.5 line-clamp-2 font-serif text-base text-fg">“{highlight}”</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              const next = new URLSearchParams(params);
+              next.delete("q");
+              setParams(next, { replace: true });
+            }}
+          >
+            Clear
+          </Button>
+        </div>
+      )}
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1 overflow-auto">
           {file.isLoading ? (
@@ -122,23 +141,38 @@ export function DocumentPage() {
             </Suspense>
           ) : null}
         </div>
-        {showPanel && (
-          <aside
-            className={cn(
-              "w-80 shrink-0 overflow-y-auto border-l border-line bg-surface",
-              !isWide && "fixed inset-y-0 right-0 z-30 mt-12 shadow-lg animate-slide-in-right md:mt-0",
-            )}
-            aria-label="Document details"
-          >
-            <DetailsPanel doc={d} highlight={highlight} page={page} />
+        {showPanel && isWide && (
+          <aside className="w-80 shrink-0 overflow-y-auto border-l border-line bg-surface" aria-label="Document details">
+            <DetailsPanel doc={d} />
           </aside>
         )}
       </div>
+      {!isWide && (
+        <RD.Root open={showPanel} onOpenChange={(o) => setPanelOpen(o)}>
+          <RD.Portal>
+            <RD.Overlay className="fixed inset-0 z-40 bg-[oklch(0.15_0.02_275/0.45)] animate-fade-in" />
+            <RD.Content className="fixed inset-y-0 right-0 z-50 flex w-[min(22rem,92vw)] flex-col border-l border-line bg-surface pt-[env(safe-area-inset-top)] shadow-lg animate-slide-in-right focus:outline-none">
+              <div className="flex h-14 shrink-0 items-center justify-between border-b border-line pr-2 pl-4">
+                <RD.Title className="text-sm font-semibold">Document details</RD.Title>
+                <RD.Description className="sr-only">Summary and metadata for {d.filename}</RD.Description>
+                <RD.Close asChild>
+                  <Button variant="ghost" size="icon-sm" aria-label="Close details">
+                    <X />
+                  </Button>
+                </RD.Close>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+                <DetailsPanel doc={d} />
+              </div>
+            </RD.Content>
+          </RD.Portal>
+        </RD.Root>
+      )}
     </div>
   );
 }
 
-function DetailsPanel({ doc, highlight, page }: { doc: DocumentItem; highlight?: string; page: number }) {
+function DetailsPanel({ doc }: { doc: DocumentItem }) {
   const [wantSummary, setWantSummary] = useState(false);
   const summary = useQuery({
     queryKey: keys.summary(doc.doc_id),
@@ -153,23 +187,17 @@ function DetailsPanel({ doc, highlight, page }: { doc: DocumentItem; highlight?:
     ["Size", formatBytes(doc.file_size_bytes)],
     ["Pages", doc.num_pages ? String(doc.num_pages) : "—"],
     ["Sections", doc.status === "ready" ? String(doc.section_count) : "—"],
-    ["Chunks", doc.status === "ready" ? String(doc.chunk_count) : "—"],
+    ["Indexed passages", doc.status === "ready" ? String(doc.chunk_count) : "—"],
     ["Uploaded", formatDateTime(doc.created_at)],
     ["Updated", formatDateTime(doc.updated_at)],
   ];
   return (
-    <div className="space-y-6 p-4">
-      {highlight && (
-        <section className="rounded-lg border border-accent/30 bg-accent-soft/50 p-3">
-          <p className="text-2xs font-medium tracking-wide text-accent-soft-fg uppercase">Cited passage · page {page}</p>
-          <blockquote className="mt-1.5 text-sm leading-6 text-fg">“{highlight}”</blockquote>
-        </section>
-      )}
+    <div className="space-y-8 p-5">
       {(doc.status === "queued" || doc.status === "processing") && (
-        <section className="space-y-2 rounded-lg border border-line p-3">
+        <section className="space-y-2 rounded-lg bg-surface-2 p-3">
           <StatusBadge status={doc.status} progress={doc.progress} />
           <ProgressBar value={doc.progress} label="Ingestion progress" />
-          <p className="text-xs text-fg-muted">Indexing in the background. You can ask questions once it's ready.</p>
+          <p className="text-xs text-fg-muted">Indexing in the background. You can ask about it once it's ready.</p>
         </section>
       )}
       {doc.status === "failed" && (
@@ -202,18 +230,19 @@ function DetailsPanel({ doc, highlight, page }: { doc: DocumentItem; highlight?:
             </Button>
           </div>
         ) : (
-          <div className="text-sm">
+          <div className="font-serif text-base leading-7 text-fg">
             <Markdown content={summary.data!.summary} />
+            {summary.data!.model && <p className="mt-2 font-mono text-2xs text-fg-subtle">{summary.data!.model}</p>}
           </div>
         )}
       </section>
       <section>
         <h2 className="mb-2 text-sm font-semibold">Details</h2>
-        <dl className="divide-y divide-line rounded-lg border border-line text-sm">
+        <dl className="divide-y divide-line border-y border-line text-sm">
           {rows.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-3 px-3 py-2">
+            <div key={k} className="flex justify-between gap-3 py-2">
               <dt className="text-fg-muted">{k}</dt>
-              <dd className="truncate text-right" title={v}>{v}</dd>
+              <dd className="truncate text-right font-mono text-xs" title={v}>{v}</dd>
             </div>
           ))}
         </dl>

@@ -19,9 +19,9 @@ import { useTheme, type ThemePref } from "@/theme/ThemeProvider";
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
-    <section className="grid gap-4 border-t border-line pt-6 md:grid-cols-[220px_1fr]">
+    <section className="grid gap-4 border-t border-line pt-8 md:grid-cols-[240px_1fr] md:gap-10">
       <div>
-        <h2 className="text-base font-semibold">{title}</h2>
+        <h2 className="font-serif text-xl font-semibold">{title}</h2>
         {description && <p className="mt-1 text-sm text-fg-muted">{description}</p>}
       </div>
       <div className="min-w-0">{children}</div>
@@ -43,7 +43,7 @@ export function SettingsPage() {
 
   return (
     <Page>
-      <PageHeader title="Settings" description="Your profile, appearance and connection." />
+      <PageHeader title="Settings" description="Your profile, appearance and the server connection." />
 
       <Section title="Profile" description="How you appear in OpenDoc.">
         {isLoadingUser ? (
@@ -57,7 +57,7 @@ export function SettingsPage() {
       </Section>
 
       <Section title="Appearance" description="Choose a theme, or follow your system.">
-        <div role="radiogroup" aria-label="Theme" className="grid max-w-md grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label="Theme" className="inline-grid w-full max-w-md grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1">
           {themes.map((t) => (
             <button
               key={t.value}
@@ -65,8 +65,8 @@ export function SettingsPage() {
               aria-checked={theme === t.value}
               onClick={() => setTheme(t.value)}
               className={cn(
-                "flex flex-col items-center gap-2 rounded-xl border p-3 text-sm transition-colors [&_svg]:size-5",
-                theme === t.value ? "border-accent bg-accent-soft/50 text-fg" : "border-line text-fg-muted hover:bg-surface-2",
+                "flex h-10 items-center justify-center gap-2 rounded-md text-sm transition-colors pointer-coarse:h-11 [&_svg]:size-4",
+                theme === t.value ? "bg-surface font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
               )}
             >
               {t.icon}
@@ -77,7 +77,7 @@ export function SettingsPage() {
       </Section>
 
       <Section title="Keyboard shortcuts">
-        <dl className="max-w-md divide-y divide-line rounded-xl border border-line text-sm">
+        <dl className="max-w-md divide-y divide-line border-y border-line text-sm">
           {[
             ["Command palette", [modKey, "K"]],
             ["Focus input", [modKey, "/"]],
@@ -85,7 +85,7 @@ export function SettingsPage() {
             ["New line", ["⇧", "↵"]],
             ["Previous / next PDF page", ["←", "→"]],
           ].map(([label, combo]) => (
-            <div key={label as string} className="flex items-center justify-between px-3 py-2">
+            <div key={label as string} className="flex items-center justify-between py-2.5">
               <dt className="text-fg-muted">{label as string}</dt>
               <dd className="flex gap-1">
                 {(combo as string[]).map((k) => (
@@ -97,7 +97,7 @@ export function SettingsPage() {
         </dl>
       </Section>
 
-      <Section title="System status" description="Live readiness of the OpenDoc API.">
+      <Section title="Server" description="The hosted API runs on a free tier that sleeps when idle and takes about a minute to wake.">
         <div className="max-w-md space-y-3">
           <div className="flex items-center justify-between text-sm">
             <span className="text-fg-muted">API</span>
@@ -108,21 +108,21 @@ export function SettingsPage() {
           ) : ready.error ? (
             <p className="text-sm text-danger">{errorMessage(ready.error)}</p>
           ) : (
-            <dl className="divide-y divide-line rounded-xl border border-line text-sm">
-              <div className="flex items-center justify-between px-3 py-2">
+            <dl className="divide-y divide-line border-y border-line text-sm">
+              <div className="flex items-center justify-between py-2.5">
                 <dt className="text-fg-muted">Overall</dt>
                 <dd className={ready.data!.status === "ready" ? "font-medium text-success" : "font-medium text-danger"}>
                   {ready.data!.status === "ready" ? "Ready" : "Not ready"}
                 </dd>
               </div>
               {Object.entries(ready.data!.checks).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between gap-3 px-3 py-2">
+                <div key={k} className="flex items-center justify-between gap-3 py-2.5">
                   <dt className="text-fg-muted capitalize">{k}</dt>
                   <dd className="truncate font-mono text-xs">{v}</dd>
                 </div>
               ))}
               {health.data?.version && (
-                <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="text-fg-muted">Version</dt>
                   <dd className="font-mono text-xs">{health.data.version}</dd>
                 </div>
