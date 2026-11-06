@@ -35,6 +35,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", resolved === "dark");
+    // Keep the browser chrome / PWA status bar in step with an explicit theme choice.
+    document
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((m) => m.setAttribute("content", resolved === "dark" ? "#111116" : "#fafafc"));
   }, [resolved]);
 
   const setTheme = useCallback((t: ThemePref) => {

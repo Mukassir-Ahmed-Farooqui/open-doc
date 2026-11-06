@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { API_BASE, API_ORIGIN } from "../config";
-import { ApiError, errorFromResponse, networkError } from "./errors";
+import { ApiError, errorFromResponse, networkError, timeoutError } from "./errors";
+import { COLD_START_POLICY, sleep, wakeStore, type RetryPolicy } from "./wake";
 import {
   ChatDetailSchema,
   ChatSchema,
@@ -23,6 +24,25 @@ export interface ApiClientOptions {
   getToken?: () => string | null;
   onUnauthorized?: () => void;
   fetch?: typeof fetch;
+  /**
+   * Retry policy for cold starts (network errors, timeouts, 502/503/504). `false` disables retries.
+   * Defaults to ~100 s of backoff, enough for a free-tier server to wake up.
+   */
+  retry?: RetryPolicy | false;
+}
+
+/** Statuses a sleeping or restarting host answers with before the app is up. */
+const GATEWAY_STATUSES = new Set([502, 503, 504]);
+/** Per-attempt timeout for idempotent requests; a cold start can hold a request ~60 s. */
+const GET_TIMEOUT_MS = 45_000;
+
+interface RawInit extends RequestInit {
+  auth?: boolean;
+  allowStatus?: number[];
+  /** Skip the cold-start retry loop for this call. */
+  noRetry?: boolean;
+  /** Don't flip the global "waking up" state (background warm-up pings). */
+  silent?: boolean;
 }
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
@@ -45,6 +65,7 @@ export class ApiClient {
   private readonly getToken: () => string | null;
   private readonly onUnauthorized?: () => void;
   private readonly fetchImpl: typeof fetch;
+  private readonly retry: RetryPolicy | false;
 
   constructor(opts: ApiClientOptions = {}) {
     this.baseUrl = opts.baseUrl ?? API_BASE;
@@ -52,6 +73,7 @@ export class ApiClient {
     this.getToken = opts.getToken ?? (() => null);
     this.onUnauthorized = opts.onUnauthorized;
     this.fetchImpl = opts.fetch ?? ((...args) => globalThis.fetch(...args));
+    this.retry = opts.retry ?? COLD_START_POLICY;
   }
 
   authHeaders(): Record<string, string> {
@@ -59,25 +81,76 @@ export class ApiClient {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  /** Low-level fetch that throws ApiError for non-2xx and handles 401. */
-  async raw(url: string, init: RequestInit & { auth?: boolean; allowStatus?: number[] } = {}): Promise<Response> {
-    const { auth = true, allowStatus = [], ...rest } = init;
+  /**
+   * Low-level fetch that throws ApiError for non-2xx and handles 401.
+   *
+   * Cold starts: a network failure, a per-attempt timeout (idempotent methods only) or a gateway
+   * status (502/503/504) is retried with backoff while the UI shows "Waking up the server". POSTs are
+   * retried only when the server cannot have processed them (no response, or a gateway status).
+   */
+  async raw(url: string, init: RawInit = {}): Promise<Response> {
+    const { auth = true, allowStatus = [], noRetry, silent, ...rest } = init;
     const headers = new Headers(rest.headers);
     if (auth) for (const [k, v] of Object.entries(this.authHeaders())) headers.set(k, v);
-    let res: Response;
-    try {
-      res = await this.fetchImpl(url, { ...rest, headers });
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") throw err;
-      throw networkError(err);
+    const method = (rest.method ?? "GET").toUpperCase();
+    const idempotent = method === "GET" || method === "HEAD";
+    const policy = noRetry ? false : this.retry;
+    const started = Date.now();
+    const callerSignal = rest.signal ?? undefined;
+
+    for (let attempt = 1; ; attempt++) {
+      const tracker = silent ? null : wakeStore.track();
+      const timeout = idempotent && policy ? new AbortController() : null;
+      const timer = timeout ? setTimeout(() => timeout.abort(), GET_TIMEOUT_MS) : null;
+      const signal = timeout ? anySignal([callerSignal, timeout.signal]) : callerSignal;
+      let res: Response | null = null;
+      let failure: ApiError | null = null;
+      try {
+        res = await this.fetchImpl(url, { ...rest, headers, signal });
+      } catch (err) {
+        if (callerSignal?.aborted) {
+          tracker?.done(false);
+          throw err instanceof DOMException ? err : new DOMException("Aborted", "AbortError");
+        }
+        failure = timeout?.signal.aborted ? timeoutError() : err instanceof DOMException && err.name === "AbortError" ? null : networkError(err);
+        if (!failure) {
+          tracker?.done(false);
+          throw err;
+        }
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+
+      const gateway = res !== null && GATEWAY_STATUSES.has(res.status) && !allowStatus.includes(res.status);
+      if (res && !gateway) tracker?.done(true);
+      else tracker?.done(false);
+
+      const retriable = failure ? failure.code === "network_error" || idempotent : gateway;
+      const canRetry =
+        !!policy && retriable && attempt < policy.attempts && Date.now() - started + policy.delay(attempt) < policy.budgetMs;
+      if ((failure || gateway) && canRetry) {
+        if (!silent) wakeStore.retrying();
+        await sleep(policy.delay(attempt), callerSignal);
+        continue;
+      }
+      if (failure) throw failure;
+      const r = res!;
+      if (!r.ok && !allowStatus.includes(r.status)) {
+        const text = await r.text().catch(() => "");
+        const error = errorFromResponse(r.status, r.headers, text);
+        if (r.status === 401 && auth) this.onUnauthorized?.();
+        throw error;
+      }
+      return r;
     }
-    if (!res.ok && !allowStatus.includes(res.status)) {
-      const text = await res.text().catch(() => "");
-      const error = errorFromResponse(res.status, res.headers, text);
-      if (res.status === 401 && auth) this.onUnauthorized?.();
-      throw error;
-    }
-    return res;
+  }
+
+  /** Background warm-up ping so a sleeping free-tier server starts booting early. Never throws. */
+  warmUp() {
+    void this.raw(`${this.origin}/health`, { auth: false, silent: true }).then(
+      () => wakeStore.awake(),
+      () => undefined,
+    );
   }
 
   private async json<S extends z.ZodType>(
@@ -194,40 +267,72 @@ export class ApiClient {
     file: File,
     opts: { onProgress?: (fraction: number) => void; signal?: AbortSignal } = {},
   ): Promise<z.infer<typeof UploadResponseSchema>> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", this.uploadUrl());
-      for (const [k, v] of Object.entries(this.authHeaders())) xhr.setRequestHeader(k, v);
-      xhr.setRequestHeader("Accept", "application/json");
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) opts.onProgress?.(e.loaded / e.total);
-      };
-      xhr.onerror = () => reject(networkError(new Error("upload failed")));
-      xhr.onabort = () => reject(new DOMException("Upload cancelled", "AbortError"));
-      xhr.onload = () => {
-        const headers = new Headers();
-        for (const line of xhr.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
-          const idx = line.indexOf(":");
-          if (idx > 0) headers.append(line.slice(0, idx).trim(), line.slice(idx + 1).trim());
-        }
-        if (xhr.status < 200 || xhr.status >= 300) {
-          if (xhr.status === 401) this.onUnauthorized?.();
-          reject(errorFromResponse(xhr.status, headers, xhr.responseText));
-          return;
-        }
-        try {
-          const parsed = UploadResponseSchema.safeParse(JSON.parse(xhr.responseText));
-          if (!parsed.success) throw new Error("invalid");
-          resolve(parsed.data);
-        } catch {
-          reject(new ApiError({ status: xhr.status, code: "invalid_response", message: "Unexpected upload response." }));
-        }
-      };
-      opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
-      const form = new FormData();
-      form.append("file", file, file.name);
-      xhr.send(form);
-    });
+    const policy = this.retry;
+    const started = Date.now();
+    const attemptOnce = () =>
+      new Promise<z.infer<typeof UploadResponseSchema>>((resolve, reject) => {
+        const tracker = wakeStore.track();
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", this.uploadUrl());
+        for (const [k, v] of Object.entries(this.authHeaders())) xhr.setRequestHeader(k, v);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) opts.onProgress?.(e.loaded / e.total);
+        };
+        xhr.onerror = () => {
+          tracker.done(false);
+          reject(networkError(new Error("upload failed")));
+        };
+        xhr.onabort = () => {
+          tracker.done(false);
+          reject(new DOMException("Upload cancelled", "AbortError"));
+        };
+        xhr.onload = () => {
+          const headers = new Headers();
+          for (const line of xhr.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
+            const idx = line.indexOf(":");
+            if (idx > 0) headers.append(line.slice(0, idx).trim(), line.slice(idx + 1).trim());
+          }
+          tracker.done(!GATEWAY_STATUSES.has(xhr.status));
+          if (xhr.status < 200 || xhr.status >= 300) {
+            if (xhr.status === 401) this.onUnauthorized?.();
+            reject(errorFromResponse(xhr.status, headers, xhr.responseText));
+            return;
+          }
+          try {
+            const parsed = UploadResponseSchema.safeParse(JSON.parse(xhr.responseText));
+            if (!parsed.success) throw new Error("invalid");
+            resolve(parsed.data);
+          } catch {
+            reject(new ApiError({ status: xhr.status, code: "invalid_response", message: "Unexpected upload response." }));
+          }
+        };
+        opts.signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+        const form = new FormData();
+        form.append("file", file, file.name);
+        xhr.send(form);
+      });
+
+    // The API de-duplicates by content hash, so re-sending after a failed attempt is safe.
+    const run = async (attempt: number): Promise<z.infer<typeof UploadResponseSchema>> => {
+      try {
+        return await attemptOnce();
+      } catch (err) {
+        const retriable = err instanceof ApiError && (err.code === "network_error" || GATEWAY_STATUSES.has(err.status));
+        if (
+          !policy ||
+          !retriable ||
+          attempt >= policy.attempts ||
+          Date.now() - started + policy.delay(attempt) >= policy.budgetMs
+        )
+          throw err;
+        wakeStore.retrying();
+        opts.onProgress?.(0);
+        await sleep(policy.delay(attempt), opts.signal);
+        return run(attempt + 1);
+      }
+    };
+    return run(1);
   }
 
   /* ── chats ── */
@@ -260,4 +365,18 @@ export class ApiClient {
       signal,
     });
   }
+}
+
+/** AbortSignal that aborts when any input aborts (AbortSignal.any is not in every target browser). */
+function anySignal(signals: (AbortSignal | undefined)[]): AbortSignal {
+  const ctrl = new AbortController();
+  for (const s of signals) {
+    if (!s) continue;
+    if (s.aborted) {
+      ctrl.abort(s.reason);
+      break;
+    }
+    s.addEventListener("abort", () => ctrl.abort(s.reason), { once: true });
+  }
+  return ctrl.signal;
 }

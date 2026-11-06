@@ -14,7 +14,7 @@ describe("StatusBadge", () => {
 
   it("shows ingestion progress while processing", () => {
     render(<StatusBadge status="processing" progress={42.4} />);
-    expect(screen.getByText("Processing")).toBeInTheDocument();
+    expect(screen.getByText("Indexing")).toBeInTheDocument();
     expect(screen.getByText("42%")).toBeInTheDocument();
   });
 

@@ -29,6 +29,13 @@ interface UploadValue {
 
 const UploadContext = createContext<UploadValue | null>(null);
 
+/** crypto.randomUUID only exists in secure contexts; self-hosted http:// deployments still need ids. */
+let seq = 0;
+const newId = () =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `up-${Date.now().toString(36)}-${(seq++).toString(36)}`;
+
 export function UploadProvider({ children }: { children: ReactNode }) {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +50,7 @@ export function UploadProvider({ children }: { children: ReactNode }) {
       const arr = Array.from(files);
       if (!arr.length) return;
       const items: UploadItem[] = arr.map((f) => ({
-        id: crypto.randomUUID(),
+        id: newId(),
         name: f.name,
         size: f.size,
         state: "uploading",

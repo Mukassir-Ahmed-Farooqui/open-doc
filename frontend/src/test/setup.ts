@@ -22,3 +22,9 @@ if (!window.matchMedia) {
     }),
   });
 }
+
+// jsdom has no layout engine, so Element.scrollIntoView is missing. The landing's
+// live product preview renders the real SourcePanel, which scrolls the active source into view.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => undefined;
+}

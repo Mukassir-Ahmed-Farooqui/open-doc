@@ -1,9 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * End-to-end tests against a REAL running stack (API + Postgres/pgvector + this SPA).
- * Nothing is mocked. Start the API, build the SPA with VITE_API_URL pointing at it, then:
- *   E2E_BASE_URL=http://127.0.0.1:4173 npx playwright test
+ * e2e/app.spec.ts runs against a REAL running stack (API + Postgres/pgvector + this SPA); nothing is
+ * mocked there. Start the API, build the SPA with VITE_API_URL pointing at it, then:
+ *   E2E_BASE_URL=http://127.0.0.1:4173 npx playwright test e2e/app.spec.ts
+ * e2e/mocked.spec.ts needs no backend: it serves a build (VITE_API_URL empty) from memory and answers
+ * the API with e2e/mock/mock-api.mjs:
+ *   MOCK_DIST=/tmp/od-dist npx playwright test e2e/mocked.spec.ts
  * Set CHROMIUM_PATH to use a system Chromium (e.g. on linux-arm64 where Playwright has no build).
  */
 export default defineConfig({

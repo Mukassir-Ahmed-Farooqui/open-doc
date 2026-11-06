@@ -1,67 +1,84 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/source-serif-4/opsz.css";
 @import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Design tokens. Neutral surfaces with a single accent (iris).
-  Semantic colours are CSS variables so light/dark swap in one place;
-  Tailwind utilities (bg-surface, text-fg-muted, border-line ...) read them.
+  OpenDoc design tokens. See DESIGN.md at the repo root for the system and its rules.
+
+  World: an editorial research workspace. Cool paper neutrals, ink text, one indigo accent for
+  actions and citations, and one highlighter tone reserved for evidence (cited passages).
+  Semantic colours are CSS variables so light/dark swap in one place; Tailwind utilities
+  (bg-surface, text-fg-muted, border-line, bg-evidence …) read them.
+
+  Contrast floor: every text role, including --fg-subtle, is >= 4.5:1 on --bg, --surface and
+  --surface-2 in both themes.
 */
 :root {
-  --bg: oklch(0.992 0 0);
+  --bg: oklch(0.986 0.0025 275);
   --surface: oklch(1 0 0);
-  --surface-2: oklch(0.975 0.002 286);
-  --surface-3: oklch(0.955 0.003 286);
-  --line: oklch(0.915 0.004 286);
-  --line-strong: oklch(0.86 0.006 286);
-  --fg: oklch(0.21 0.006 286);
-  --fg-muted: oklch(0.47 0.01 286);
-  --fg-subtle: oklch(0.6 0.01 286);
-  --accent: oklch(0.54 0.19 277);
-  --accent-hover: oklch(0.49 0.2 277);
-  --accent-fg: oklch(0.99 0 0);
-  --accent-soft: oklch(0.955 0.03 277);
-  --accent-soft-fg: oklch(0.42 0.17 277);
-  --success: oklch(0.56 0.13 155);
-  --success-soft: oklch(0.96 0.04 155);
-  --warning: oklch(0.62 0.14 70);
-  --warning-soft: oklch(0.97 0.05 85);
-  --danger: oklch(0.56 0.2 25);
-  --danger-soft: oklch(0.965 0.025 25);
-  --ring: oklch(0.54 0.19 277 / 0.55);
-  --shadow-color: 240 6% 10%;
+  --surface-2: oklch(0.966 0.004 275);
+  --surface-3: oklch(0.935 0.006 275);
+  --line: oklch(0.9 0.006 275);
+  --line-strong: oklch(0.82 0.009 275);
+  --fg: oklch(0.205 0.018 275);
+  --fg-muted: oklch(0.42 0.016 275);
+  --fg-subtle: oklch(0.5 0.014 275);
+  --accent: #5b5bd6;
+  --accent-hover: #4c4cc4;
+  --accent-fg: #ffffff;
+  --accent-soft: oklch(0.95 0.025 280);
+  --accent-soft-fg: oklch(0.44 0.17 280);
+  --evidence: oklch(0.94 0.1 98);
+  --evidence-strong: oklch(0.86 0.15 92);
+  --evidence-fg: oklch(0.36 0.07 80);
+  --success: oklch(0.5 0.12 155);
+  --success-soft: oklch(0.955 0.035 155);
+  --warning: oklch(0.52 0.12 65);
+  --warning-soft: oklch(0.965 0.045 85);
+  --danger: oklch(0.52 0.19 25);
+  --danger-soft: oklch(0.962 0.025 25);
+  --ring: oklch(0.53 0.17 280 / 0.6);
+  --shadow-color: 250 20% 15%;
+  --scrollbar: oklch(0.82 0.009 275);
+  color-scheme: light;
 }
 
 .dark {
-  --bg: oklch(0.145 0.004 286);
-  --surface: oklch(0.175 0.005 286);
-  --surface-2: oklch(0.205 0.006 286);
-  --surface-3: oklch(0.24 0.007 286);
-  --line: oklch(0.27 0.006 286);
-  --line-strong: oklch(0.34 0.008 286);
-  --fg: oklch(0.96 0.003 286);
-  --fg-muted: oklch(0.73 0.01 286);
-  --fg-subtle: oklch(0.6 0.01 286);
-  --accent: oklch(0.66 0.17 277);
-  --accent-hover: oklch(0.71 0.15 277);
-  --accent-fg: oklch(0.16 0.02 277);
-  --accent-soft: oklch(0.27 0.06 277);
-  --accent-soft-fg: oklch(0.85 0.08 277);
-  --success: oklch(0.72 0.14 155);
-  --success-soft: oklch(0.27 0.05 155);
-  --warning: oklch(0.8 0.13 80);
-  --warning-soft: oklch(0.29 0.05 80);
-  --danger: oklch(0.7 0.17 25);
-  --danger-soft: oklch(0.28 0.06 25);
-  --ring: oklch(0.66 0.17 277 / 0.6);
+  --bg: oklch(0.18 0.009 278);
+  --surface: oklch(0.21 0.01 278);
+  --surface-2: oklch(0.237 0.011 278);
+  --surface-3: oklch(0.272 0.012 278);
+  --line: oklch(0.305 0.011 278);
+  --line-strong: oklch(0.385 0.013 278);
+  --fg: oklch(0.955 0.004 278);
+  --fg-muted: oklch(0.78 0.01 278);
+  --fg-subtle: oklch(0.68 0.012 278);
+  --accent: oklch(0.7 0.14 280);
+  --accent-hover: oklch(0.76 0.12 280);
+  --accent-fg: oklch(0.17 0.03 280);
+  --accent-soft: oklch(0.29 0.06 280);
+  --accent-soft-fg: oklch(0.87 0.07 280);
+  --evidence: oklch(0.42 0.08 90 / 0.55);
+  --evidence-strong: oklch(0.55 0.11 90 / 0.7);
+  --evidence-fg: oklch(0.9 0.08 95);
+  --success: oklch(0.76 0.13 155);
+  --success-soft: oklch(0.28 0.05 155);
+  --warning: oklch(0.82 0.12 80);
+  --warning-soft: oklch(0.3 0.05 80);
+  --danger: oklch(0.74 0.15 25);
+  --danger-soft: oklch(0.29 0.06 25);
+  --ring: oklch(0.7 0.14 280 / 0.65);
   --shadow-color: 0 0% 0%;
+  --scrollbar: oklch(0.37 0.013 278);
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Iowan Old Style", Georgia, serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-bg: var(--bg);
@@ -78,6 +95,9 @@
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
   --color-accent-soft-fg: var(--accent-soft-fg);
+  --color-evidence: var(--evidence);
+  --color-evidence-strong: var(--evidence-strong);
+  --color-evidence-fg: var(--evidence-fg);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -86,41 +106,55 @@
   --color-danger-soft: var(--danger-soft);
   --color-ring: var(--ring);
 
-  /* Type scale (rem): 12 / 13 / 14 / 16 / 20 / 24 / 32 */
-  --text-2xs: 0.6875rem;
+  /* Type scale (rem @16px): 12 / 13 / 14 / 15 / 17 / 20 / 26 / 34 / 46 / 60. ~1.25 steps. */
+  --text-2xs: 0.75rem;
   --text-2xs--line-height: 1rem;
-  --text-xs: 0.75rem;
+  --text-xs: 0.8125rem;
   --text-xs--line-height: 1.125rem;
-  --text-sm: 0.8125rem;
+  --text-sm: 0.875rem;
   --text-sm--line-height: 1.25rem;
-  --text-base: 0.875rem;
+  --text-base: 0.9375rem;
   --text-base--line-height: 1.5rem;
-  --text-lg: 1rem;
-  --text-lg--line-height: 1.5rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.7rem;
   --text-xl: 1.25rem;
   --text-xl--line-height: 1.75rem;
-  --text-2xl: 1.5rem;
-  --text-2xl--line-height: 2rem;
-  --text-3xl: 2rem;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 2.1rem;
+  --text-3xl: 2.125rem;
   --text-3xl--line-height: 2.5rem;
+  --text-4xl: 2.875rem;
+  --text-4xl--line-height: 1.08;
+  --text-5xl: 3.75rem;
+  --text-5xl--line-height: 1.02;
 
+  --radius-xs: 0.25rem;
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-xl: 0.875rem;
 
   --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.06);
-  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 1px 3px hsl(var(--shadow-color) / 0.08);
-  --shadow-lg: 0 12px 32px -8px hsl(var(--shadow-color) / 0.22), 0 2px 6px hsl(var(--shadow-color) / 0.08);
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06), 0 2px 6px -2px hsl(var(--shadow-color) / 0.08);
+  --shadow-lg: 0 18px 40px -16px hsl(var(--shadow-color) / 0.28), 0 3px 8px -2px hsl(var(--shadow-color) / 0.1);
 
-  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion: exponential ease-outs, three durations. Reduced-motion swaps movement for fades. */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 320ms;
 
-  --animate-fade-in: fade-in 160ms var(--ease-out-soft);
-  --animate-pop-in: pop-in 180ms var(--ease-out-soft);
-  --animate-slide-in-left: slide-in-left 220ms var(--ease-out-soft);
-  --animate-slide-in-right: slide-in-right 220ms var(--ease-out-soft);
-  --animate-shimmer: shimmer 1.6s linear infinite;
-  --animate-blink: blink 1s steps(2, start) infinite;
+  --animate-fade-in: fade-in 180ms var(--ease-out-quart) both;
+  --animate-pop-in: pop-in 200ms var(--ease-out-expo) both;
+  --animate-rise-in: rise-in 320ms var(--ease-out-expo) both;
+  --animate-slide-in-left: slide-in-left 260ms var(--ease-out-expo);
+  --animate-slide-in-right: slide-in-right 260ms var(--ease-out-expo);
+  --animate-slide-in-up: slide-in-up 280ms var(--ease-out-expo);
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-caret: caret 1.1s ease-in-out infinite;
+  --animate-scan: scan 1.4s var(--ease-out-quart) infinite;
 }
 
 @keyframes fade-in {
@@ -128,7 +162,11 @@
   to { opacity: 1; }
 }
 @keyframes pop-in {
-  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  from { opacity: 0; transform: translateY(4px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes slide-in-left {
@@ -139,12 +177,22 @@
   from { transform: translateX(100%); }
   to { transform: none; }
 }
+@keyframes slide-in-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }
 }
-@keyframes blink {
-  to { visibility: hidden; }
+@keyframes caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+/* Indeterminate "reading" bar: a short segment sweeping across a hairline track. */
+@keyframes scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
 }
 
 @layer base {
@@ -152,19 +200,33 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: var(--scrollbar) transparent;
   }
   body {
-    @apply bg-bg text-fg font-sans text-base;
-    font-feature-settings: "cv11", "ss01";
+    @apply bg-bg font-sans text-base text-fg;
+    caret-color: var(--accent);
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   ::selection {
     background: var(--accent-soft);
     color: var(--accent-soft-fg);
   }
-  html {
-    -webkit-tap-highlight-color: transparent;
-    -webkit-text-size-adjust: 100%;
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar);
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
   }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::placeholder { color: var(--fg-subtle); opacity: 1; }
   @media (display-mode: standalone) {
     html, body { overscroll-behavior-y: none; }
   }
@@ -172,11 +234,21 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+  a { text-underline-offset: 0.18em; text-decoration-thickness: from-font; }
+
+  /*
+    Reduced motion: keep state changes legible (fades, progress) but remove travel, parallax and
+    looping decoration. Not a blanket 0.01ms kill.
+  */
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
+    html { scroll-behavior: auto !important; }
+    .animate-pop-in, .animate-rise-in, .animate-slide-in-left, .animate-slide-in-right, .animate-slide-in-up {
+      animation: fade-in 160ms linear both !important;
     }
+    .animate-shimmer, .skeleton, .animate-caret, .is-streaming .prose-note *::after { animation: none !important; }
+    .animate-scan { animation-duration: 3s !important; }
+    .animate-spin { animation-duration: 1.6s !important; }
+    *, *::before, *::after { transition-property: color, background-color, border-color, opacity, outline-color, box-shadow !important; }
   }
 }
 
@@ -188,6 +260,10 @@
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
   }
+  .safe-x {
+    padding-right: env(safe-area-inset-right);
+    padding-left: env(safe-area-inset-left);
+  }
 
   .skeleton {
     background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
@@ -195,30 +271,84 @@
     @apply animate-shimmer rounded-md;
   }
 
-  /* Rendered markdown (answers, md documents) */
+  /* Rendered markdown for documents and summaries (sans, UI reading). */
   .prose-doc {
     @apply text-base leading-7 text-fg;
   }
   .prose-doc > * + * { margin-top: 0.75em; }
-  .prose-doc h1 { @apply text-xl font-semibold tracking-tight mt-6; }
-  .prose-doc h2 { @apply text-lg font-semibold tracking-tight mt-5; }
-  .prose-doc h3 { @apply text-base font-semibold mt-4; }
-  .prose-doc ul { @apply list-disc pl-5 space-y-1; }
-  .prose-doc ol { @apply list-decimal pl-5 space-y-1; }
-  .prose-doc a:not([data-citation]) { @apply text-accent underline underline-offset-2; }
-  .prose-doc code { @apply font-mono text-[0.85em] rounded bg-surface-3 px-1 py-0.5; }
-  .prose-doc pre { @apply font-mono text-sm rounded-lg bg-surface-2 border border-line p-3 overflow-x-auto; }
+  .prose-doc h1 { @apply mt-6 font-serif text-2xl font-semibold tracking-[-0.01em]; }
+  .prose-doc h2 { @apply mt-5 font-serif text-xl font-semibold; }
+  .prose-doc h3 { @apply mt-4 text-base font-semibold; }
+  .prose-doc ul { @apply list-disc space-y-1 pl-5; }
+  .prose-doc ol { @apply list-decimal space-y-1 pl-5; }
+  .prose-doc li::marker { color: var(--fg-subtle); }
+  .prose-doc a:not([data-citation]) { @apply text-accent-soft-fg underline; }
+  .prose-doc code { @apply rounded-xs bg-surface-3 px-1 py-0.5 font-mono text-[0.85em]; }
+  .prose-doc pre { @apply overflow-x-auto rounded-lg bg-surface-2 p-3 font-mono text-sm; }
   .prose-doc pre code { @apply bg-transparent p-0; }
-  .prose-doc blockquote { @apply border-l-2 border-line-strong pl-3 text-fg-muted; }
-  .prose-doc table { @apply w-full text-sm border-collapse; }
-  .prose-doc th, .prose-doc td { @apply border border-line px-2 py-1 text-left; }
-  .prose-doc th { @apply bg-surface-2 font-medium; }
+  .prose-doc blockquote { @apply bg-surface-2 px-4 py-2 text-fg-muted; border-radius: var(--radius-md); }
+  .prose-doc table { @apply w-full border-collapse text-sm; }
+  .prose-doc th, .prose-doc td { @apply border-b border-line px-2 py-1.5 text-left; }
+  .prose-doc th { @apply font-semibold; }
   .prose-doc hr { @apply border-line; }
+  .prose-doc strong { @apply font-semibold; }
 
-  /* PDF text-layer highlight for cited snippets */
+  /* Answers read as research notes: serif reading face at a comfortable measure. */
+  .prose-note {
+    @apply font-serif text-lg text-fg;
+    font-optical-sizing: auto;
+  }
+  .prose-note > * + * { margin-top: 0.8em; }
+  .prose-note ul { @apply list-disc space-y-1.5 pl-5; }
+  .prose-note ol { @apply list-decimal space-y-1.5 pl-5; }
+  .prose-note li::marker { color: var(--fg-subtle); }
+  .prose-note h1, .prose-note h2, .prose-note h3 { @apply mt-5 font-sans text-base font-semibold; }
+  .prose-note strong { @apply font-semibold; }
+  .prose-note code { @apply rounded-xs bg-surface-3 px-1 py-0.5 font-mono text-[0.8em]; }
+  .prose-note pre { @apply overflow-x-auto rounded-lg bg-surface-2 p-3 font-mono text-sm; }
+  .prose-note a:not([data-citation]) { @apply text-accent-soft-fg underline; }
+  .prose-note table { @apply w-full border-collapse font-sans text-sm; }
+  .prose-note th, .prose-note td { @apply border-b border-line px-2 py-1.5 text-left; }
+  .prose-note blockquote { @apply bg-surface-2 px-4 py-2 text-fg-muted; border-radius: var(--radius-md); }
+
+  .preview-note .prose-note { font-size: var(--text-base); line-height: 1.75rem; }
+
+  /* Streaming caret: a soft indigo block after the last rendered text. */
+  .is-streaming .prose-note > :last-child::after,
+  .is-streaming .prose-note > :last-child > li:last-child::after {
+    content: "";
+    display: inline-block;
+    width: 0.45em;
+    height: 1.05em;
+    margin-left: 0.15em;
+    vertical-align: -0.15em;
+    border-radius: 1px;
+    background: var(--accent);
+    animation: var(--animate-caret);
+  }
+  .is-streaming .prose-note > ul:last-child::after,
+  .is-streaming .prose-note > ol:last-child::after { content: none; }
+
+  /* Cited passage in the PDF text layer: a highlighter stroke, not a selection colour. */
   .pdf-hl {
-    background: color-mix(in oklch, var(--accent) 30%, transparent);
+    background: oklch(0.85 0.16 92 / 0.42);
     border-radius: 2px;
     color: transparent;
+  }
+
+  /* Bigger hit area for small inline controls on touch screens, without changing their look. */
+  .hit {
+    position: relative;
+  }
+  @media (pointer: coarse) {
+    .hit::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: max(100%, 2.25rem);
+      height: max(100%, 2.25rem);
+      transform: translate(-50%, -50%);
+    }
   }
 }

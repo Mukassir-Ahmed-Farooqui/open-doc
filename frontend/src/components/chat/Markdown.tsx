@@ -10,10 +10,12 @@ export interface MarkdownProps {
   citations?: Map<string, Citation>;
   onCite?: (sourceId: string) => void;
   activeCite?: string | null;
+  /** "note" renders answers in the serif reading face; "doc" is the UI sans for documents. */
+  variant?: "note" | "doc";
 }
 
 /** Markdown renderer. When `citations` is given, [S#] markers render as interactive chips. */
-export const Markdown = memo(function Markdown({ content, citations, onCite, activeCite }: MarkdownProps) {
+export const Markdown = memo(function Markdown({ content, citations, onCite, activeCite, variant = "doc" }: MarkdownProps) {
   const withCites = citations !== undefined;
   const components: Components = {
     a({ href, children, ...props }) {
@@ -29,7 +31,7 @@ export const Markdown = memo(function Markdown({ content, citations, onCite, act
     },
   };
   return (
-    <div className="prose-doc">
+    <div className={variant === "note" ? "prose-note" : "prose-doc"}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {withCites ? linkifyCitations(content) : content}
       </ReactMarkdown>

@@ -37,8 +37,8 @@ export function MenuItem({
     <DM.Item
       onSelect={onSelect}
       className={cn(
-        "flex h-8 cursor-default items-center gap-2 rounded-md px-2 text-sm outline-none select-none data-[highlighted]:bg-surface-2 [&_svg]:size-4",
-        destructive ? "text-danger" : "text-fg",
+        "flex h-9 cursor-default items-center gap-2.5 rounded-md px-2.5 text-sm outline-none select-none data-[highlighted]:bg-surface-2 pointer-coarse:h-11 [&_svg]:size-4 [&_svg]:text-fg-subtle",
+        destructive ? "text-danger [&_svg]:text-danger" : "text-fg",
       )}
     >
       {icon}

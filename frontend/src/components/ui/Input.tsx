@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export const inputClass =
-  "h-9 w-full rounded-md border border-line bg-surface px-3 text-base text-fg placeholder:text-fg-subtle shadow-xs transition-colors hover:border-line-strong focus-visible:outline-none focus-visible:border-accent focus-visible:ring-3 focus-visible:ring-ring/30 disabled:opacity-60 aria-[invalid=true]:border-danger";
+  "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-base text-fg transition-colors hover:border-fg-subtle focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring/40 disabled:bg-surface-2 disabled:text-fg-muted aria-[invalid=true]:border-danger pointer-coarse:h-11";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className, ...props },
@@ -26,17 +26,20 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-fg">
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={htmlFor} className="block text-sm font-medium text-fg">
+          {label}
+        </label>
+        {hint && !error ? (
+          <span id={`${htmlFor}-hint`} className="text-xs text-fg-subtle">
+            {hint}
+          </span>
+        ) : null}
+      </div>
       {children}
       {error ? (
         <p id={`${htmlFor}-error`} className="text-xs text-danger" role="alert">
           {error}
-        </p>
-      ) : hint ? (
-        <p id={`${htmlFor}-hint`} className="text-xs text-fg-subtle">
-          {hint}
         </p>
       ) : null}
     </div>

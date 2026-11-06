@@ -20,10 +20,12 @@ export interface ComposerProps {
   onStyleChange: (s: SummaryStyle) => void;
   scope: ReactNode;
   autoFocus?: boolean;
+  /** Prefill (used by the landing page's live preview). */
+  initialText?: string;
 }
 
-export function Composer({ onSend, onStop, streaming, disabledReason, style, onStyleChange, scope, autoFocus }: ComposerProps) {
-  const [text, setText] = useState("");
+export function Composer({ onSend, onStop, streaming, disabledReason, style, onStyleChange, scope, autoFocus, initialText = "" }: ComposerProps) {
+  const [text, setText] = useState(initialText);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function Composer({ onSend, onStop, streaming, disabledReason, style, onS
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-surface shadow-sm transition-shadow focus-within:border-line-strong focus-within:shadow-lg">
+    <div className="rounded-xl border border-line-strong bg-surface shadow-sm transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--accent-soft)]">
       <label htmlFor="composer" className="sr-only">
         Ask a question about your documents
       </label>
@@ -62,7 +64,7 @@ export function Composer({ onSend, onStop, streaming, disabledReason, style, onS
         }}
         placeholder={disabledReason ?? "Ask a question about your documents…"}
         aria-describedby="composer-help"
-        className="block max-h-60 w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-base leading-6 placeholder:text-fg-subtle focus:outline-none"
+        className="block max-h-60 w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-lg leading-7 focus:outline-none"
       />
       <div className="flex items-center gap-2 px-2 pb-2">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
@@ -72,7 +74,7 @@ export function Composer({ onSend, onStop, streaming, disabledReason, style, onS
             id="answer-style"
             value={style}
             onChange={(e) => onStyleChange(e.target.value as SummaryStyle)}
-            className="h-7 rounded-md border border-transparent bg-transparent px-1.5 text-xs text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:border-line-strong focus-visible:outline-none"
+            className="h-8 rounded-md border border-transparent bg-transparent px-1.5 text-sm text-fg-muted hover:bg-surface-2 hover:text-fg focus-visible:border-line-strong focus-visible:outline-none pointer-coarse:h-11"
           >
             {STYLES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -81,15 +83,15 @@ export function Composer({ onSend, onStop, streaming, disabledReason, style, onS
             ))}
           </select>
         </div>
-        <span id="composer-help" className="hidden items-center gap-1 text-2xs text-fg-subtle lg:flex">
+        <span id="composer-help" className="hidden items-center gap-1 text-2xs text-fg-subtle lg:flex pointer-coarse:hidden">
           <Kbd>↵</Kbd> send · <Kbd>⇧↵</Kbd> newline · <Kbd>{modKey}/</Kbd> focus
         </span>
         {streaming ? (
-          <Button variant="secondary" size="icon" onClick={onStop} aria-label="Stop generating" className="rounded-full">
+          <Button variant="secondary" size="icon" onClick={onStop} aria-label="Stop generating">
             <Square className="!size-3 fill-current" />
           </Button>
         ) : (
-          <Button variant="primary" size="icon" onClick={submit} disabled={!canSend} aria-label="Send" className="rounded-full">
+          <Button variant="primary" size="icon" onClick={submit} disabled={!canSend} aria-label="Send">
             <ArrowUp />
           </Button>
         )}

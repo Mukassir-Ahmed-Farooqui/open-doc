@@ -38,8 +38,8 @@ export function ScopePicker({
           type="button"
           aria-label={`Documents in scope: ${label}`}
           className={cn(
-            "inline-flex h-7 max-w-[14rem] items-center gap-1.5 rounded-md border px-2 text-xs transition-colors disabled:opacity-50",
-            validSelected.length ? "border-line bg-surface-2 text-fg hover:bg-surface-3" : "border-warning/40 bg-warning-soft text-warning",
+            "inline-flex h-8 max-w-[15rem] items-center gap-1.5 rounded-md px-2 text-sm transition-colors disabled:opacity-50 pointer-coarse:h-11",
+            validSelected.length ? "bg-surface-2 text-fg hover:bg-surface-3" : "bg-warning-soft text-warning",
           )}
         >
           <FileText className="size-3.5 shrink-0" aria-hidden />
@@ -52,14 +52,14 @@ export function ScopePicker({
           align="start"
           side="top"
           sideOffset={6}
-          className="z-50 w-80 rounded-xl border border-line bg-surface p-1 shadow-lg animate-pop-in"
+          className="z-50 w-[min(20rem,calc(100vw-1.5rem))] rounded-lg border border-line bg-surface p-1 shadow-lg animate-pop-in"
         >
           <div className="flex items-center justify-between px-2 py-1.5">
-            <span className="text-xs font-medium text-fg-muted">Search in</span>
+            <span className="text-xs font-medium text-fg-muted">Answer from</span>
             {ready.length > 0 && (
               <button
                 type="button"
-                className="text-xs text-accent hover:underline"
+                className="min-h-8 text-xs font-medium text-accent-soft-fg hover:underline"
                 onClick={() => onChange(validSelected.length === ready.length ? [] : ready.map((d) => d.doc_id))}
               >
                 {validSelected.length === ready.length ? "Clear" : "Select all"}
@@ -70,7 +70,7 @@ export function ScopePicker({
             {documents.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-fg-muted">
                 No documents yet.{" "}
-                <Link to="/documents" className="text-accent hover:underline">
+                <Link to="/documents" className="text-accent-soft-fg underline">
                   Upload one
                 </Link>
               </p>
@@ -87,7 +87,7 @@ export function ScopePicker({
                       e.preventDefault();
                       toggle(d.doc_id);
                     }}
-                    className="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none select-none data-[disabled]:opacity-60 data-[highlighted]:bg-surface-2"
+                    className="flex min-h-9 cursor-default items-center gap-2.5 rounded-md px-2 py-1.5 text-sm outline-none select-none data-[disabled]:opacity-60 data-[highlighted]:bg-surface-2 pointer-coarse:min-h-11"
                   >
                     <span
                       className={cn(

@@ -22,16 +22,16 @@ export function Dialog({
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
       <RD.Portal>
-        <RD.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] animate-fade-in" />
+        <RD.Overlay className="fixed inset-0 z-50 bg-[oklch(0.15_0.02_275/0.45)] animate-fade-in" />
         <RD.Content
           className={cn(
-            "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface p-5 shadow-lg animate-pop-in focus:outline-none",
+            "fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface p-6 shadow-lg animate-pop-in focus:outline-none",
             className,
           )}
         >
           <div className="mb-3 flex items-start justify-between gap-4">
             <div>
-              <RD.Title className="text-lg font-semibold tracking-tight">{title}</RD.Title>
+              <RD.Title className="font-serif text-xl font-semibold">{title}</RD.Title>
               {description ? (
                 <RD.Description className="mt-1 text-sm text-fg-muted">{description}</RD.Description>
               ) : (
