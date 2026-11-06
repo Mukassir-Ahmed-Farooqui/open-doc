@@ -1,21 +1,27 @@
-import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import type { DocumentStatus } from "@/lib/api/schemas";
 import { cn } from "@/lib/cn";
 import { Spinner } from "./Spinner";
 
-const styles: Record<DocumentStatus, string> = {
-  ready: "bg-success-soft text-success",
-  processing: "bg-accent-soft text-accent-soft-fg",
-  queued: "bg-warning-soft text-warning",
-  failed: "bg-danger-soft text-danger",
+const tone: Record<DocumentStatus, string> = {
+  ready: "text-success",
+  processing: "text-accent-soft-fg",
+  queued: "text-warning",
+  failed: "text-danger",
+};
+const dot: Record<DocumentStatus, string> = {
+  ready: "bg-success",
+  processing: "bg-accent",
+  queued: "bg-warning",
+  failed: "bg-danger",
 };
 const labels: Record<DocumentStatus, string> = {
   ready: "Ready",
-  processing: "Processing",
+  processing: "Indexing",
   queued: "Queued",
   failed: "Failed",
 };
 
+/** Quiet status: a dot (or spinner while indexing) and a word. Colour is never the only signal. */
 export function StatusBadge({
   status,
   progress,
@@ -27,19 +33,14 @@ export function StatusBadge({
 }) {
   const showPct = status === "processing" && typeof progress === "number" && progress > 0;
   return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center gap-1 rounded-full px-2 text-2xs font-medium whitespace-nowrap [&_svg]:size-3",
-        styles[status],
-        className,
+    <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap", tone[status], className)}>
+      {status === "processing" ? (
+        <Spinner className="size-3" />
+      ) : (
+        <span className={cn("size-1.5 rounded-full", dot[status])} aria-hidden />
       )}
-    >
-      {status === "ready" && <CheckCircle2 aria-hidden />}
-      {status === "processing" && <Spinner className="size-3" />}
-      {status === "queued" && <Clock aria-hidden />}
-      {status === "failed" && <AlertCircle aria-hidden />}
       {labels[status]}
-      {showPct && <span className="tabular-nums">{Math.round(progress!)}%</span>}
+      {showPct && <span className="font-mono tabular-nums">{Math.round(progress!)}%</span>}
     </span>
   );
 }
@@ -55,7 +56,16 @@ export function ProgressBar({ value, className, label }: { value: number; classN
       aria-valuemax={100}
       aria-label={label}
     >
-      <div className="h-full rounded-full bg-accent transition-[width] duration-300 ease-out" style={{ width: `${v}%` }} />
+      <div className="h-full rounded-full bg-accent transition-[width] duration-500 ease-out" style={{ width: `${v}%` }} />
+    </div>
+  );
+}
+
+/** Indeterminate progress for work with no percentage (searching, waiting). */
+export function ScanBar({ className, label }: { className?: string; label?: string }) {
+  return (
+    <div className={cn("relative h-0.5 w-full overflow-hidden rounded-full bg-surface-3", className)} role="progressbar" aria-label={label}>
+      <div className="absolute inset-y-0 left-0 w-2/5 animate-scan rounded-full bg-accent" />
     </div>
   );
 }

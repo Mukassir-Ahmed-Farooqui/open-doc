@@ -1,4 +1,4 @@
-import { MessageSquare, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -47,7 +47,7 @@ export function ConversationList({ onNavigate }: { onNavigate?: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations"
-            className="h-8 w-full rounded-md border border-transparent bg-surface-3/60 pr-2 pl-8 text-sm placeholder:text-fg-subtle focus-visible:border-line-strong focus-visible:bg-surface focus-visible:outline-none"
+            className="h-9 w-full rounded-md border border-line bg-surface pr-2 pl-8 text-sm focus-visible:border-accent focus-visible:outline-none pointer-coarse:h-11"
           />
         </label>
       </div>
@@ -66,13 +66,13 @@ export function ConversationList({ onNavigate }: { onNavigate?: () => void }) {
             </button>
           </div>
         ) : !data?.length ? (
-          <p className="px-2 py-3 text-xs text-fg-subtle">No conversations yet. Start one with New chat.</p>
+          <p className="px-2.5 py-3 text-xs text-fg-subtle">Your questions will appear here.</p>
         ) : !filtered.length ? (
-          <p className="px-2 py-3 text-xs text-fg-subtle">No conversations match “{query}”.</p>
+          <p className="px-2.5 py-3 text-xs text-fg-subtle">No conversations match “{query}”.</p>
         ) : (
           groups.map(([label, chats]) => (
             <div key={label} className="mb-2">
-              <p className="px-2 pt-2 pb-1 text-2xs font-medium tracking-wide text-fg-subtle uppercase">{label}</p>
+              <p className="px-2.5 pt-3 pb-1 text-xs font-medium text-fg-subtle">{label}</p>
               <ul className="space-y-px">
                 {chats.map((c) => (
                   <ConversationItem key={c.id} chat={c} onNavigate={onNavigate} />
@@ -119,7 +119,7 @@ function ConversationItem({ chat, onNavigate }: { chat: Chat; onNavigate?: () =>
               setEditing(false);
             }
           }}
-          className="h-8 w-full rounded-md border border-accent bg-surface px-2 text-sm focus-visible:outline-none"
+          className="h-9 w-full rounded-md border border-accent bg-surface px-2.5 text-sm focus-visible:outline-none"
         />
       </li>
     );
@@ -132,19 +132,18 @@ function ConversationItem({ chat, onNavigate }: { chat: Chat; onNavigate?: () =>
         onClick={onNavigate}
         className={({ isActive }) =>
           cn(
-            "flex h-8 items-center gap-2 rounded-md pr-8 pl-2 text-sm transition-colors",
+            "flex h-9 items-center gap-2 rounded-md pr-9 pl-2.5 text-sm transition-colors pointer-coarse:h-11 pointer-coarse:pr-12",
             isActive ? "bg-surface-3 text-fg font-medium" : "text-fg-muted hover:bg-surface-3/60 hover:text-fg",
           )
         }
         title={chat.title}
       >
-        <MessageSquare className="size-3.5 shrink-0 opacity-60" aria-hidden />
         <span className="truncate">{chat.title}</span>
       </NavLink>
-      <div className="absolute top-1/2 right-1 -translate-y-1/2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+      <div className="absolute top-1/2 right-1 -translate-y-1/2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
         <Menu>
           <MenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="size-6" aria-label={`Options for ${chat.title}`}>
+            <Button variant="ghost" size="icon-sm" className="size-7 pointer-coarse:size-10" aria-label={`Options for ${chat.title}`}>
               <MoreHorizontal />
             </Button>
           </MenuTrigger>

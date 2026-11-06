@@ -6,9 +6,9 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function ListSkeleton({ rows = 4, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cn("space-y-2", className)} role="status" aria-label="Loading">
+    <div className={cn("divide-y divide-line border-y border-line", className)} role="status" aria-label="Loading">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="flex items-center gap-3 rounded-lg border border-line bg-surface p-3">
+        <div key={i} className="flex items-center gap-3 py-3.5">
           <Skeleton className="size-8 rounded-md" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-3.5 w-2/5" />

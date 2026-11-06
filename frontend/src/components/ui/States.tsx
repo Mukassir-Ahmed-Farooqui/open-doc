@@ -1,9 +1,13 @@
-import { AlertTriangle, RotateCw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { errorMessage } from "@/lib/api/errors";
+import { errorMessage, isColdStartError } from "@/lib/api/errors";
 import { Button } from "./Button";
 
+/**
+ * Empty state: a plain statement and one next step. No icon tile; an optional inline icon sits
+ * beside the heading so the state reads as text, not as a card template.
+ */
 export function EmptyState({
   icon,
   title,
@@ -19,14 +23,10 @@ export function EmptyState({
 }) {
   return (
     <div className={cn("flex flex-col items-center justify-center px-6 py-12 text-center", className)}>
-      {icon && (
-        <div className="mb-4 flex size-11 items-center justify-center rounded-xl border border-line bg-surface-2 text-fg-muted [&_svg]:size-5">
-          {icon}
-        </div>
-      )}
-      <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-      {description && <p className="mt-1 max-w-sm text-sm text-fg-muted">{description}</p>}
-      {action && <div className="mt-5">{action}</div>}
+      {icon && <div className="mb-3 text-fg-subtle [&_svg]:size-6" aria-hidden>{icon}</div>}
+      <h3 className="font-serif text-xl font-semibold text-fg">{title}</h3>
+      {description && <p className="mt-1.5 max-w-sm text-sm text-fg-muted">{description}</p>}
+      {action && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>
   );
 }
@@ -42,13 +42,11 @@ export function ErrorState({
   onRetry?: () => void;
   className?: string;
 }) {
+  const cold = isColdStartError(error);
   return (
     <div role="alert" className={cn("flex flex-col items-center justify-center px-6 py-12 text-center", className)}>
-      <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-danger-soft text-danger">
-        <AlertTriangle className="size-5" />
-      </div>
-      <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-      <p className="mt-1 max-w-md text-sm text-fg-muted">{errorMessage(error)}</p>
+      <h3 className="font-serif text-xl font-semibold text-fg">{cold ? "The server is still waking up" : title}</h3>
+      <p className="mt-1.5 max-w-md text-sm text-fg-muted">{errorMessage(error)}</p>
       {onRetry && (
         <Button className="mt-5" variant="outline" onClick={onRetry}>
           <RotateCw /> Try again
