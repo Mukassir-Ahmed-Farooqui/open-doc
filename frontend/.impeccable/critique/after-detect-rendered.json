@@ -1,0 +1,122 @@
+{
+ "landing@1280": [
+  {
+   "antipattern": "straggler",
+   "name": "Straggler",
+   "description": "The last line of this paragraph holds one word, which leaves a hole under the block. Set text-wrap: pretty on body copy (Chrome, Safari) to pull a word down beside it. Where a browser ignores it, edit the last sentence or bind the last two words with a no-break space. Keep it if the break is intended.",
+   "severity": "advisory",
+   "category": "quality",
+   "file": "http://opendoc.test/",
+   "line": 0,
+   "snippet": "\"run.\" alone on the last of 3 lines (9% of the measure)",
+   "advisory": true,
+   "selector": "div:nth-of-type(5) > dd.mt-2.text-base"
+  },
+  {
+   "antipattern": "line-length",
+   "name": "Line length too long",
+   "description": "Text lines wider than ~80 characters are hard to read. The eye loses its place tracking back to the start of the next line, so it is measured on the lines that rendered and charged when more than one of them runs long. Add a max-width (65ch to 75ch) to text containers.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/",
+   "line": 0,
+   "snippet": "~103 chars on 2 of 3 rendered lines (aim for <80)",
+   "selector": "p.mt-6.max-w-2xl"
+  }
+ ],
+ "login@1280": [],
+ "dashboard@1280": [],
+ "library@1280": [],
+ "chat@1280": [],
+ "viewer@1280": [
+  {
+   "antipattern": "flat-type-hierarchy",
+   "name": "Flat type hierarchy",
+   "description": "Dominant heading and body roles are separated by less than 1.25\u00d7 at every step, leaving the size hierarchy flat. Add at least one stronger size step.",
+   "severity": "advisory",
+   "category": "slop",
+   "file": "http://opendoc.test/documents/80bcb629-255f-49ba-bb6f-18c018a66c58?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "Role sizes: body 13px, h2 14px, h1 15px (largest adjacent step 1.08:1; target 1.25:1; weight separates headings from body text)",
+   "advisory": true,
+   "selector": "body"
+  }
+ ],
+ "settings@1280": [],
+ "landing@390": [
+  {
+   "antipattern": "straggler",
+   "name": "Straggler",
+   "description": "The last line of this paragraph holds one word, which leaves a hole under the block. Set text-wrap: pretty on body copy (Chrome, Safari) to pull a word down beside it. Where a browser ignores it, edit the last sentence or bind the last two words with a no-break space. Keep it if the break is intended.",
+   "severity": "advisory",
+   "category": "quality",
+   "file": "http://opendoc.test/",
+   "line": 0,
+   "snippet": "\"menu.\" alone on the last of 3 lines (12% of the measure)",
+   "advisory": true,
+   "selector": "div:nth-of-type(6) > dd.mt-2.text-base"
+  }
+ ],
+ "login@390": [],
+ "dashboard@390": [],
+ "library@390": [],
+ "chat@390": [],
+ "viewer@390": [
+  {
+   "antipattern": "undersized-ui-text",
+   "name": "Undersized functional text",
+   "description": "Interactive and content-bearing UI text (links, buttons, nav items, labels, table cells, meta rows, timecodes) below 11px is a legibility failure, not a style choice. WCAG sets no absolute pixel floor, but functional text under 11px is a defensible quality bar: it fails on high-DPI and small viewports and it degrades tap and read targets. The 11px floor holds even inside a footer; only non-interactive legal smallprint gets the softer 10px floor. Being ON the DESIGN.md size ramp does not exempt a value here: adding 8px to the ramp launders the token but not the legibility problem, and that is exactly the escape hatch this rule closes. Exempts sup/sub, visually-hidden (sr-only) text, and code/terminal contexts. Decorative letterspaced micro-labels are still functional and stay in scope.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/documents/c8157fc0-e032-439f-9b56-0b989a404fa3?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "9.84202px functional text \"3. TERMINATION\" (below 11px floor)",
+   "selector": "div.react-pdf__Page__textContent.textLayer > span:nth-of-type(1)"
+  },
+  {
+   "antipattern": "tiny-text",
+   "name": "Tiny body text",
+   "description": "Body text below 12px is hard to read, especially on high-DPI screens. Use at least 14px for body content, 16px is ideal.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/documents/c8157fc0-e032-439f-9b56-0b989a404fa3?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "6.76639px body text",
+   "selector": "mark.pdf-hl"
+  },
+  {
+   "antipattern": "undersized-ui-text",
+   "name": "Undersized functional text",
+   "description": "Interactive and content-bearing UI text (links, buttons, nav items, labels, table cells, meta rows, timecodes) below 11px is a legibility failure, not a style choice. WCAG sets no absolute pixel floor, but functional text under 11px is a defensible quality bar: it fails on high-DPI and small viewports and it degrades tap and read targets. The 11px floor holds even inside a footer; only non-interactive legal smallprint gets the softer 10px floor. Being ON the DESIGN.md size ramp does not exempt a value here: adding 8px to the ramp launders the token but not the legibility problem, and that is exactly the escape hatch this rule closes. Exempts sup/sub, visually-hidden (sr-only) text, and code/terminal contexts. Decorative letterspaced micro-labels are still functional and stay in scope.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/documents/c8157fc0-e032-439f-9b56-0b989a404fa3?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "6.76639px functional text \"the other party.\" (below 11px floor)",
+   "selector": "span:nth-of-type(3)"
+  },
+  {
+   "antipattern": "tiny-text",
+   "name": "Tiny body text",
+   "description": "Body text below 12px is hard to read, especially on high-DPI screens. Use at least 14px for body content, 16px is ideal.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/documents/c8157fc0-e032-439f-9b56-0b989a404fa3?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "6.76639px body text",
+   "selector": "span:nth-of-type(4)"
+  },
+  {
+   "antipattern": "tiny-text",
+   "name": "Tiny body text",
+   "description": "Body text below 12px is hard to read, especially on high-DPI screens. Use at least 14px for body content, 16px is ideal.",
+   "severity": "warning",
+   "category": "quality",
+   "file": "http://opendoc.test/documents/c8157fc0-e032-439f-9b56-0b989a404fa3?page=2&q=Either%20party%20may%20terminate%20this%20Agreement%20for%20convenience",
+   "line": 0,
+   "snippet": "6.76639px body text",
+   "selector": "span:nth-of-type(5)"
+  }
+ ],
+ "settings@390": []
+}
