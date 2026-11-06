@@ -90,14 +90,31 @@ export function errorFromResponse(status: number, headers: Headers, bodyText: st
   return new ApiError({ status, code, message, requestId, retryAfter, details });
 }
 
+const offline = () => typeof navigator !== "undefined" && navigator.onLine === false;
+
 export function networkError(cause: unknown): ApiError {
   const msg = cause instanceof Error ? cause.message : String(cause);
   return new ApiError({
     status: 0,
     code: "network_error",
-    message: "Could not reach the OpenDoc API. Check your connection or the API URL.",
+    message: offline()
+      ? "You're offline. Reconnect and try again."
+      : "The OpenDoc server didn't answer. It may still be waking up (free tier, about a minute). Try again shortly.",
     details: msg,
   });
+}
+
+export function timeoutError(): ApiError {
+  return new ApiError({
+    status: 0,
+    code: "timeout",
+    message: "The OpenDoc server is taking too long to answer. It may still be waking up. Try again shortly.",
+  });
+}
+
+/** True for failures caused by the server being unreachable or asleep (worth an automatic retry). */
+export function isColdStartError(err: unknown): boolean {
+  return err instanceof ApiError && (err.code === "network_error" || err.code === "timeout" || [502, 503, 504].includes(err.status));
 }
 
 export function errorMessage(err: unknown): string {

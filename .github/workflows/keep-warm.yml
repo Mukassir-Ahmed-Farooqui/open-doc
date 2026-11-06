@@ -1,0 +1,33 @@
+name: keep-warm
+
+# Pings the hosted API so Render's free tier (sleeps after 15 min idle, ~1 min cold start) stays awake
+# during Indian daytime: every 10 minutes from 02:30 to 18:30 UTC (08:00 to 00:00 IST).
+# About 16 h/day x 31 days = ~500 instance hours a month, inside Render's 750 free hours.
+# Scheduled workflows only run from the default branch, so this starts after the PR is merged.
+on:
+  schedule:
+    - cron: "30,40,50 2 * * *"
+    - cron: "*/10 3-17 * * *"
+    - cron: "0,10,20,30 18 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /health
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 https://opendoc-api.onrender.com/health || echo 000)
+            echo "attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 15
+          done
+          echo "::warning::OpenDoc API did not answer 200 after 3 attempts"

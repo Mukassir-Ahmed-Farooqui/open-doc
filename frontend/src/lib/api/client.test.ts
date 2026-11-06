@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ApiClient } from "./client";
 import { ApiError } from "./errors";
 import { streamChatMessage } from "./stream";
+import { wakeStore } from "./wake";
 
 const doc = {
   doc_id: "11111111-1111-1111-1111-111111111111",
@@ -23,7 +24,7 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
 }
 
 function makeClient(fetchImpl: typeof fetch, extra: Partial<ConstructorParameters<typeof ApiClient>[0]> = {}) {
-  return new ApiClient({ baseUrl: "https://api.test/api/v1", origin: "https://api.test", fetch: fetchImpl, getToken: () => "tok", ...extra });
+  return new ApiClient({ baseUrl: "https://api.test/api/v1", origin: "https://api.test", fetch: fetchImpl, getToken: () => "tok", retry: false, ...extra });
 }
 
 describe("ApiClient", () => {
@@ -95,6 +96,69 @@ describe("ApiClient", () => {
     });
     const err = await makeClient(f as unknown as typeof fetch).listChats().catch((e) => e);
     expect(err.code).toBe("network_error");
+  });
+
+  it("retries a cold start (network error, then 503) and recovers", async () => {
+    wakeStore.reset();
+    let n = 0;
+    const f = vi.fn(async () => {
+      n += 1;
+      if (n === 1) throw new TypeError("Failed to fetch");
+      if (n === 2) return json({ detail: "Service Unavailable" }, 503);
+      return json([doc]);
+    });
+    const states: boolean[] = [];
+    const off = wakeStore.subscribe((s) => states.push(s.waking));
+    const docs = await makeClient(f as unknown as typeof fetch, {
+      retry: { attempts: 5, delay: () => 1, budgetMs: 5000 },
+    }).listDocuments();
+    off();
+    expect(docs).toHaveLength(1);
+    expect(f).toHaveBeenCalledTimes(3);
+    expect(states).toContain(true);
+    expect(wakeStore.get().waking).toBe(false);
+  });
+
+  it("gives up after the retry budget with a friendly cold-start message", async () => {
+    const f = vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    const err = await makeClient(f as unknown as typeof fetch, { retry: { attempts: 3, delay: () => 1, budgetMs: 5000 } })
+      .listChats()
+      .catch((e) => e);
+    expect(f).toHaveBeenCalledTimes(3);
+    expect(err.code).toBe("network_error");
+    expect(err.message).toMatch(/waking up/);
+    wakeStore.reset();
+  });
+
+  it("does not retry a POST that may have reached the server (no gateway status)", async () => {
+    const f = vi.fn(async () => json({ detail: "boom" }, 500));
+    const err = await makeClient(f as unknown as typeof fetch, { retry: { attempts: 4, delay: () => 1, budgetMs: 5000 } })
+      .createChat([])
+      .catch((e) => e);
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(err.status).toBe(500);
+  });
+
+  it("does not retry the /ready probe's intentional 503", async () => {
+    const f = vi.fn(async () => json({ status: "not_ready", checks: {} }, 503));
+    await makeClient(f as unknown as typeof fetch, { retry: { attempts: 4, delay: () => 1, budgetMs: 5000 } }).ready();
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops retrying when the caller aborts", async () => {
+    const ctrl = new AbortController();
+    const f = vi.fn(async () => {
+      ctrl.abort();
+      throw new TypeError("Failed to fetch");
+    });
+    const err = await makeClient(f as unknown as typeof fetch, { retry: { attempts: 5, delay: () => 50, budgetMs: 5000 } })
+      .listChats(ctrl.signal)
+      .catch((e) => e);
+    expect(err.name).toBe("AbortError");
+    expect(f).toHaveBeenCalledTimes(1);
+    wakeStore.reset();
   });
 
   it("creates chats with the selected documents", async () => {
