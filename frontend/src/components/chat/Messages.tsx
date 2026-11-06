@@ -10,11 +10,12 @@ import { cn } from "@/lib/cn";
 import { Markdown } from "./Markdown";
 
 /** The user's question, set as the heading of its research note. */
-export function QuestionHeading({ content, first }: { content: string; first?: boolean }) {
+export function QuestionHeading({ content, first, compact }: { content: string; first?: boolean; compact?: boolean }) {
   return (
     <h2
       className={cn(
-        "animate-rise-in font-serif text-xl leading-snug font-semibold tracking-[-0.01em] whitespace-pre-wrap text-fg sm:text-2xl sm:leading-tight",
+        "animate-rise-in font-serif leading-snug font-semibold tracking-[-0.01em] whitespace-pre-wrap text-fg",
+        compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl sm:leading-tight",
         !first && "mt-12 border-t border-line pt-10",
       )}
     >

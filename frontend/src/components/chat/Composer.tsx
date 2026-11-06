@@ -20,10 +20,12 @@ export interface ComposerProps {
   onStyleChange: (s: SummaryStyle) => void;
   scope: ReactNode;
   autoFocus?: boolean;
+  /** Prefill (used by the landing page's live preview). */
+  initialText?: string;
 }
 
-export function Composer({ onSend, onStop, streaming, disabledReason, style, onStyleChange, scope, autoFocus }: ComposerProps) {
-  const [text, setText] = useState("");
+export function Composer({ onSend, onStop, streaming, disabledReason, style, onStyleChange, scope, autoFocus, initialText = "" }: ComposerProps) {
+  const [text, setText] = useState(initialText);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

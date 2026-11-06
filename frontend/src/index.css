@@ -311,6 +311,8 @@
   .prose-note th, .prose-note td { @apply border-b border-line px-2 py-1.5 text-left; }
   .prose-note blockquote { @apply bg-surface-2 px-4 py-2 text-fg-muted; border-radius: var(--radius-md); }
 
+  .preview-note .prose-note { font-size: var(--text-base); line-height: 1.75rem; }
+
   /* Streaming caret: a soft indigo block after the last rendered text. */
   .is-streaming .prose-note > :last-child::after,
   .is-streaming .prose-note > :last-child > li:last-child::after {
