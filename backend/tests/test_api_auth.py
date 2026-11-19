@@ -131,6 +131,19 @@ async def test_per_account_failed_login_limit(client, monkeypatch) -> None:
     assert r.status_code == 401
 
 
+async def test_signup_quota_runs_before_exists_check(client, monkeypatch) -> None:
+    """Probing existing emails via 409 is bounded by the per-IP signup quota."""
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "signups_per_ip_day", 2)
+    ip = {"CF-Connecting-IP": "203.0.113.50"}
+    body = {"email": "taken@example.com", "password": "password123"}
+    assert (await client.post("/api/v1/auth/register", json=body, headers=ip)).status_code == 201
+    assert (await client.post("/api/v1/auth/register", json=body, headers=ip)).status_code == 409
+    r = await client.post("/api/v1/auth/register", json=body, headers=ip)
+    assert r.status_code == 429  # no further existence answers from this IP today
+
+
 def test_email_hash_normalises_and_hides_address() -> None:
     from app.config import get_settings
     from app.ratelimit import email_hash

@@ -42,9 +42,11 @@ async def register(
     body: RegisterRequest, request: Request, session: AsyncSession = Depends(get_session)
 ) -> RegisterResponse:
     email = body.email.lower()
+    # Quota first: every attempt (new or existing email) spends a unit, so the 409 below can't be
+    # used to probe more than a few addresses per IP per day.
+    await check_signup(request)  # 3 attempts per IP per day (Postgres-backed)
     if (await session.execute(select(User.id).where(User.email == email))).first():
         raise AppError(409, "Email already registered")
-    await check_signup(request)  # 3 accounts per IP per day (Postgres-backed)
     user = User(email=email, hashed_password=await hash_password(body.password), full_name=body.full_name)
     session.add(user)
     try:
