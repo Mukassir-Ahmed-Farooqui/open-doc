@@ -38,7 +38,7 @@ The backend must allow the frontend origin: `CORS_ORIGINS=http://localhost:5173`
 
 | Variable | When | Meaning |
 |---|---|---|
-| `VITE_API_URL` | build time | API origin without `/api/v1`, e.g. `https://opendoc-api.up.railway.app`. Empty = same origin (put the SPA and API behind one reverse proxy that forwards `/api`, `/health`, `/ready`). |
+| `VITE_API_URL` | build time | API origin without `/api/v1`, e.g. `https://opendoc-api.onrender.com`. Empty = same origin (put the SPA and API behind one reverse proxy that forwards `/api`, `/health`, `/ready`). |
 
 ## Deploy
 

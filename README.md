@@ -187,7 +187,7 @@ GROQ_API_KEY=... python scripts/eval/run_generation.py
 
 ## Deployment
 
-The live setup is Vercel + Render free + Neon + Supabase Storage, described above. Railway and Google Cloud Run also work. Step-by-step guides, every environment variable, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
+The live setup is Vercel + Render free + Neon + Supabase Storage, described above. Google Cloud Run also works. Step-by-step guides, every environment variable, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Documentation
 
@@ -196,7 +196,7 @@ The live setup is Vercel + Render free + Neon + Supabase Storage, described abov
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data model, ingestion and retrieval pipelines, decisions and rejected alternatives, known limits |
 | [docs/API.md](docs/API.md) | Endpoints, error envelope, streaming format, contract changes vs the previous backend |
 | [docs/BENCHMARKS.md](docs/BENCHMARKS.md) | Retrieval results for every chunking x retrieval x scope configuration, abstention calibration, ingest timings, memory |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | Render + Supabase (live setup), Railway and Cloud Run guides, environment variables, migrations, health checks |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Render + Supabase (live setup) and Cloud Run guides, environment variables, migrations, health checks |
 
 ## License
 
