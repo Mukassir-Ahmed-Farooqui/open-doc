@@ -144,6 +144,10 @@ export class ApiClient {
   updateMe(body: { full_name: string | null }) {
     return this.json("PATCH", "/auth/me", UserSchema, { body });
   }
+  /** Permanently delete the account and all its data. A wrong password is a 403 (the session stays valid). */
+  deleteAccount(password: string) {
+    return this.json("DELETE", "/auth/me", StatusResponseSchema, { body: { password } });
+  }
 
   /* ── documents ── */
   listDocuments(signal?: AbortSignal) {

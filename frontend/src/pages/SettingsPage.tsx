@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Monitor, Moon, RotateCw, Sun } from "lucide-react";
+import { LogOut, Monitor, Moon, RotateCw, Sun, Trash2 } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
+import { tokenStore } from "@/auth/tokenStore";
 import { Page, PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Input";
@@ -11,7 +13,7 @@ import { modKey } from "@/lib/platform";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { keys } from "@/hooks/queries";
 import { api } from "@/lib/api/instance";
-import { errorMessage } from "@/lib/api/errors";
+import { ApiError, errorMessage } from "@/lib/api/errors";
 import { API_ORIGIN } from "@/lib/config";
 import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/format";
@@ -140,6 +142,10 @@ export function SettingsPage() {
           <LogOut /> Sign out
         </Button>
       </Section>
+
+      <Section title="Delete account" description="Permanently delete your account, documents and chats.">
+        <DeleteAccountForm />
+      </Section>
     </Page>
   );
 }
@@ -173,6 +179,53 @@ function ProfileForm() {
       {user?.created_at && <p className="text-xs text-fg-subtle">Member since {formatDateTime(user.created_at)}</p>}
       <Button type="submit" variant="primary" loading={save.isPending} disabled={name.trim() === (user?.full_name ?? "")}>
         Save changes
+      </Button>
+    </form>
+  );
+}
+
+export function DeleteAccountForm() {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const del = useMutation({
+    mutationFn: (pw: string) => api.deleteAccount(pw),
+    onSuccess: () => {
+      tokenStore.clear("logout");
+      toast.success("Your account was deleted.");
+      navigate("/", { replace: true });
+    },
+    onError: (err) => {
+      setError(err instanceof ApiError && err.status === 403 ? "Incorrect password." : errorMessage(err));
+    },
+  });
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!password) return setError("Enter your password to confirm.");
+    setError(null);
+    del.mutate(password);
+  };
+  return (
+    <form onSubmit={submit} className="max-w-md space-y-4 rounded-xl border border-danger/40 bg-danger-soft/40 p-4">
+      <p className="text-sm text-fg-muted">
+        This removes your account, every uploaded file, its text and embeddings, and all chats. It can&apos;t be undone.
+      </p>
+      <Field label="Confirm with your password" htmlFor="delete-password" error={error}>
+        <Input
+          id="delete-password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? "delete-password-error" : undefined}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (error) setError(null);
+          }}
+        />
+      </Field>
+      <Button type="submit" variant="danger" loading={del.isPending} disabled={!password}>
+        <Trash2 /> Delete account
       </Button>
     </form>
   );
