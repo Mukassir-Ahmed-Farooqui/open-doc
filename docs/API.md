@@ -1,6 +1,6 @@
 # OpenDoc API (v1)
 
-Base path: `/api/v1`. Interactive docs: `GET /docs` (OpenAPI at `/openapi.json`).
+Base path: `/api/v1`. Interactive docs: `GET /docs` (OpenAPI at `/openapi.json`), only when `APP_ENV` is not `production`; they are disabled on the live API.
 Auth: `Authorization: Bearer <JWT>` from `POST /auth/login` on every route except register/login and the probes.
 
 ## Error envelope
@@ -31,6 +31,7 @@ Codes: `bad_request` 400, `unauthorized` 401, `forbidden` 403, `not_found` 404, 
 | POST | `/auth/login` | `{email, password}` | 200 `{access_token, token_type: "bearer", expires_in}`; 401 bad credentials; 403 deactivated |
 | GET | `/auth/me` | | `{id, email, full_name, created_at}` |
 | PATCH | `/auth/me` | `{full_name?}` | same as GET |
+| DELETE | `/auth/me` | `{password}` | 200 `{status: "deleted"}`. Deletes stored files, then the user and (by cascade) documents, chunks, chats and query logs. 403 wrong password; 503 if a stored file could not be removed (nothing deleted) |
 
 Emails are stored lower-cased. Login and register are rate limited per client IP (`RATE_LIMIT_AUTH`), and login also per account: after `LOGIN_FAILURES_PER_EMAIL` (5) failures in `LOGIN_FAILURE_WINDOW_MINUTES` (15) it returns 429 with `Retry-After`.
 
@@ -61,9 +62,9 @@ Document object:
 
 | Method | Path | Body | Notes |
 |---|---|---|---|
-| GET | `/chats` | | `[{id, title, selected_doc_ids, created_at, updated_at}]`, most recently updated first |
+| GET | `/chats` | | `[{id, title, selected_doc_ids, created_at, updated_at}]`, most recently updated first. Query `limit` (default 50, 1-100), `offset` (default 0) |
 | POST | `/chats` | `{selected_doc_ids?: [uuid]}` | 201. Unknown or foreign ids give 404 |
-| GET | `/chats/{id}` | | Chat plus `messages` (oldest first) |
+| GET | `/chats/{id}` | | Chat plus its newest `limit` messages (skipping `offset` newer ones), returned oldest first. Same `limit` / `offset` as the list |
 | PATCH | `/chats/{id}` | `{title}` | Rename |
 | PATCH | `/chats/{id}/documents` | `{selected_doc_ids}` | Replace the chat's document selection |
 | DELETE | `/chats/{id}` | | `{status: "success", message}` |

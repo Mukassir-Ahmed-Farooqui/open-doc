@@ -120,4 +120,4 @@ curl https://<api-host>/health     # {"status":"ok",...}
 curl https://<api-host>/ready      # {"status":"ready","checks":{"database":"ok","pgvector":"0.8.x","storage":"ok","worker":"ok","llm":"configured"}}
 ```
 
-Then open `https://<api-host>/docs`, register a user, upload a PDF and watch `GET /api/v1/documents/{id}` move from `queued` to `ready`.
+`/docs` is disabled when `APP_ENV=production`. Register a user from the frontend (or `POST /api/v1/auth/register`), upload a PDF and watch `GET /api/v1/documents/{id}` move from `queued` to `ready`.
