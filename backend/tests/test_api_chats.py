@@ -190,6 +190,7 @@ async def test_chat_list_and_messages_pagination(app, client, auth) -> None:
             s.add(Message(chat_id=uuid.UUID(chat_id), role="user", content=f"m{i}"))
             await s.flush()
         await s.commit()
+
     def contents(detail: dict) -> list[str]:
         return [m["content"] for m in detail["messages"]]
 

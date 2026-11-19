@@ -35,7 +35,9 @@ async def _ask(client, headers, chat_id: str):
 async def test_delete_account_removes_everything(app, client, auth, caplog) -> None:
     caplog.set_level(logging.INFO, logger="app")
     doc = await upload_and_ingest(app, client, auth, "msa.pdf", make_contract_pdf())
-    chat = (await client.post("/api/v1/chats", headers=auth, json={"selected_doc_ids": [doc["doc_id"]]})).json()
+    chat = (
+        await client.post("/api/v1/chats", headers=auth, json={"selected_doc_ids": [doc["doc_id"]]})
+    ).json()
     app.state.rag.llm = FakeLLM(citing_responder)
     await _ask(client, auth, chat["id"])
     async with app.state.db.sessionmaker() as s:
@@ -71,7 +73,9 @@ async def test_delete_account_removes_everything(app, client, auth, caplog) -> N
         await app.state.storage.get(key)
     # Old token no longer works; the account can't sign in.
     assert (await client.get("/api/v1/auth/me", headers=auth)).status_code == 401
-    r = await client.post("/api/v1/auth/login", json={"email": "alice@example.com", "password": "password123"})
+    r = await client.post(
+        "/api/v1/auth/login", json={"email": "alice@example.com", "password": "password123"}
+    )
     assert r.status_code == 401
     assert (await client.get("/api/v1/documents", headers=bob)).json()[0]["filename"] == "b.pdf"
 
@@ -96,7 +100,9 @@ async def test_delete_account_requires_auth(client) -> None:
 
 async def test_document_delete_strips_citations_and_query_logs(app, client, auth) -> None:
     doc = await upload_and_ingest(app, client, auth, "msa.pdf", make_contract_pdf())
-    chat = (await client.post("/api/v1/chats", headers=auth, json={"selected_doc_ids": [doc["doc_id"]]})).json()
+    chat = (
+        await client.post("/api/v1/chats", headers=auth, json={"selected_doc_ids": [doc["doc_id"]]})
+    ).json()
     app.state.rag.llm = FakeLLM(citing_responder)
     answer = await _ask(client, auth, chat["id"])
     cited = answer.get("citations") or answer.get("assistant_message", {}).get("citations")

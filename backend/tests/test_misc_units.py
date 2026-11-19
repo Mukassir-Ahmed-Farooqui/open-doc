@@ -70,7 +70,6 @@ async def test_local_storage_roundtrip_and_key_validation(tmp_path) -> None:
             await st.put(bad, b"x", "text/plain")
 
 
-
 async def test_api_docs_hidden_in_production() -> None:
     import httpx
 
@@ -82,7 +81,11 @@ async def test_api_docs_hidden_in_production() -> None:
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
             return {p: (await c.get(p)).status_code for p in ("/docs", "/redoc", "/openapi.json")}
 
-    assert await statuses(Settings(app_env="development")) == {"/docs": 200, "/redoc": 200, "/openapi.json": 200}
+    assert await statuses(Settings(app_env="development")) == {
+        "/docs": 200,
+        "/redoc": 200,
+        "/openapi.json": 200,
+    }
     prod = Settings(app_env="production", jwt_secret_key="x" * 40)
     assert await statuses(prod) == {"/docs": 404, "/redoc": 404, "/openapi.json": 404}
 
