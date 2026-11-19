@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
-from app.db.models import Chat, Document, DocumentStatus, Section
+from app.db.models import Chat, Document, DocumentStatus, QueryLog, Section
 from app.errors import AppError, not_found
 from app.ingestion.parsers import SUPPORTED_TYPES, ParseError, detect_type
 from app.ingestion.validation import UploadRejectedError, validate_upload
@@ -221,6 +221,21 @@ def _reject(owner_id: uuid.UUID, reason: str, **extra: object) -> None:
     logger.warning("upload_rejected", extra={"user_id": str(owner_id), "reason": reason, **extra})
 
 
+_STRIP_CITATIONS_SQL = text(
+    """
+    UPDATE messages m
+    SET citations = (
+        SELECT COALESCE(jsonb_agg(c), '[]'::jsonb)
+        FROM jsonb_array_elements(m.citations) AS c
+        WHERE c->>'doc_id' IS DISTINCT FROM :doc
+    )
+    FROM chats ch
+    WHERE m.chat_id = ch.id AND ch.user_id = :owner
+      AND m.citations @> jsonb_build_array(jsonb_build_object('doc_id', CAST(:doc AS text)))
+    """
+)
+
+
 async def delete_document(
     session: AsyncSession, storage: ObjectStorage, owner_id: uuid.UUID, doc_id: uuid.UUID
 ) -> None:
@@ -232,6 +247,12 @@ async def delete_document(
         update(Chat)
         .where(Chat.user_id == owner_id, Chat.selected_doc_ids.contains([str(doc_id)]))
         .values(selected_doc_ids=Chat.selected_doc_ids.op("-")(str(doc_id)))
+    )
+    # Drop what this user's history still holds from the document: cited snippets in answers and
+    # logged questions about it. (Answer text itself stays; it may paraphrase the document.)
+    await session.execute(_STRIP_CITATIONS_SQL, {"owner": owner_id, "doc": str(doc_id)})
+    await session.execute(
+        delete(QueryLog).where(QueryLog.user_id == owner_id, QueryLog.document_ids.contains([str(doc_id)]))
     )
     await session.commit()
     try:

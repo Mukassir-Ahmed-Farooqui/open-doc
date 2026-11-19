@@ -37,6 +37,14 @@ class UserUpdateRequest(BaseModel):
     full_name: str | None = Field(None, min_length=1, max_length=255)
 
 
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(..., min_length=1, max_length=256)
+
+
+class DeleteAccountResponse(BaseModel):
+    status: str = "deleted"
+
+
 class UserResponse(BaseModel):
     id: str
     email: str
