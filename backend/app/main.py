@@ -87,12 +87,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 await llm.aclose()
             await db.dispose()
 
+    # Interactive docs and the schema are for development; production doesn't advertise the API.
+    show_docs = settings.app_env != "production"
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
         lifespan=lifespan,
-        docs_url="/docs",
-        openapi_url="/openapi.json",
+        docs_url="/docs" if show_docs else None,
+        redoc_url="/redoc" if show_docs else None,
+        openapi_url="/openapi.json" if show_docs else None,
     )
     install_error_handlers(app)
 
@@ -154,7 +157,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     async def root() -> dict:
-        return {"name": settings.app_name, "version": settings.app_version, "docs": "/docs"}
+        body: dict = {"name": settings.app_name, "version": settings.app_version}
+        if show_docs:
+            body["docs"] = "/docs"
+        return body
 
     return app
 
