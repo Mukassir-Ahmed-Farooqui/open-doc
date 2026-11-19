@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 pytestmark = pytest.mark.db
@@ -22,7 +24,8 @@ async def test_register_login_me_update(client) -> None:
     assert r.status_code == 200 and r.json()["full_name"] == "Bob B"
 
 
-async def test_duplicate_and_bad_credentials(client) -> None:
+async def test_duplicate_and_bad_credentials(client, caplog) -> None:
+    caplog.set_level(logging.INFO, logger="app")
     body = {"email": "c@example.com", "password": "password123"}
     assert (await client.post("/api/v1/auth/register", json=body)).status_code == 201
     r = await client.post("/api/v1/auth/register", json=body)
@@ -32,6 +35,10 @@ async def test_duplicate_and_bad_credentials(client) -> None:
     assert r.status_code == 401
     r = await client.post("/api/v1/auth/login", json={"email": "nobody@example.com", "password": "whatever1"})
     assert r.status_code == 401
+    failed = [rec for rec in caplog.records if rec.getMessage() == "login_failed"]
+    assert len(failed) == 2 and all(rec.ip and len(rec.email_hash) == 32 for rec in failed)
+    logged = " ".join(str(vars(rec)) for rec in failed)
+    assert "c@example.com" not in logged and "wrong-pass" not in logged and "whatever1" not in logged
 
 
 async def test_validation_envelope(client) -> None:

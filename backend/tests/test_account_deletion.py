@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 from sqlalchemy import func, select
 
@@ -30,7 +32,8 @@ async def _ask(client, headers, chat_id: str):
     return r.json()
 
 
-async def test_delete_account_removes_everything(app, client, auth) -> None:
+async def test_delete_account_removes_everything(app, client, auth, caplog) -> None:
+    caplog.set_level(logging.INFO, logger="app")
     doc = await upload_and_ingest(app, client, auth, "msa.pdf", make_contract_pdf())
     chat = (await client.post("/api/v1/chats", headers=auth, json={"selected_doc_ids": [doc["doc_id"]]})).json()
     app.state.rag.llm = FakeLLM(citing_responder)
@@ -51,9 +54,12 @@ async def test_delete_account_removes_everything(app, client, auth) -> None:
     r = await client.request("DELETE", "/api/v1/auth/me", headers=auth, json={})
     assert r.status_code == 422
 
+    alice_id = (await client.get("/api/v1/auth/me", headers=auth)).json()["id"]
     before = await _counts(app)
     r = await client.request("DELETE", "/api/v1/auth/me", headers=auth, json={"password": "password123"})
     assert r.status_code == 200 and r.json() == {"status": "deleted"}
+    deleted = [rec for rec in caplog.records if rec.getMessage() == "account_deleted"]
+    assert len(deleted) == 1 and deleted[0].user_id == alice_id
     after = await _counts(app)
     assert after["users"] == 1 and after["documents"] == 1 and after["chats"] == 0
     assert after["messages"] == 0 and after["query_logs"] == 0

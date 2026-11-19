@@ -14,7 +14,7 @@ from app.auth.security import DUMMY_HASH, create_access_token, hash_password, ve
 from app.config import Settings, get_settings
 from app.db.models import Document, User
 from app.errors import AppError
-from app.quota import check_signup
+from app.quota import check_signup, client_ip
 from app.ratelimit import check_login_allowed, email_hash, rate_limit, record_login_failure
 from app.schemas.auth import (
     DeleteAccountRequest,
@@ -79,6 +79,8 @@ async def login(
     valid = await verify_password(body.password, user.hashed_password if user else DUMMY_HASH)
     if user is None or not valid:
         await record_login_failure(request, settings, ehash)
+        # Keyed hash, never the address; never the password.
+        logger.warning("login_failed", extra={"email_hash": ehash, "ip": client_ip(request)})
         raise AppError(401, "Invalid credentials")
     if not user.is_active:
         raise AppError(403, "User account is deactivated")
@@ -144,4 +146,5 @@ async def delete_me(
         )
     await session.execute(delete(User).where(User.id == user_id))
     await session.commit()
+    logger.warning("account_deleted", extra={"user_id": str(user_id), "documents": len(keys)})
     return DeleteAccountResponse()
