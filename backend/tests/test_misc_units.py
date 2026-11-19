@@ -85,3 +85,27 @@ async def test_api_docs_hidden_in_production() -> None:
     assert await statuses(Settings(app_env="development")) == {"/docs": 200, "/redoc": 200, "/openapi.json": 200}
     prod = Settings(app_env="production", jwt_secret_key="x" * 40)
     assert await statuses(prod) == {"/docs": 404, "/redoc": 404, "/openapi.json": 404}
+
+
+async def test_security_headers_on_responses_and_cors_preflight() -> None:
+    import httpx
+
+    from app.main import create_app
+
+    expected = {
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "referrer-policy": "strict-origin-when-cross-origin",
+    }
+    app = create_app(Settings(cors_origins="https://a.app"))
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        ok = await c.get("/")
+        missing = await c.get("/api/v1/nope")
+        preflight = await c.options(
+            "/api/v1/auth/login",
+            headers={"Origin": "https://a.app", "Access-Control-Request-Method": "POST"},
+        )
+    for r in (ok, missing, preflight):
+        assert {k: r.headers.get(k) for k in expected} == expected
+    assert preflight.status_code == 200
+    assert preflight.headers["access-control-allow-origin"] == "https://a.app"

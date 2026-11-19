@@ -123,6 +123,7 @@ async def test_stream_endpoint_sse(app, client, auth) -> None:
     ) as r:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/event-stream")
+        assert r.headers["x-content-type-options"] == "nosniff"
         raw = (await r.aread()).decode()
     for block in raw.strip().split("\n\n"):
         lines = dict(line.split(": ", 1) for line in block.splitlines())

@@ -25,6 +25,7 @@ from app.providers.embeddings import build_embedder
 from app.providers.llm import build_llm
 from app.providers.rerank import build_reranker
 from app.retrieval.retriever import HybridRetriever
+from app.security_headers import SecurityHeadersMiddleware
 from app.storage import build_storage
 
 logger = logging.getLogger("app")
@@ -150,6 +151,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 },
             )
         return response
+
+    # Added last, so outermost: CORS preflights, errors and streamed responses all get the headers.
+    app.add_middleware(SecurityHeadersMiddleware)
 
     app.include_router(health.router)
     for module in (auth, documents, chats):
