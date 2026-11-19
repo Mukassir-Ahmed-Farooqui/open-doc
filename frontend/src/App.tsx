@@ -13,6 +13,7 @@ const LibraryPage = lazy(() => import("@/pages/LibraryPage").then((m) => ({ defa
 const DocumentPage = lazy(() => import("@/pages/DocumentPage").then((m) => ({ default: m.DocumentPage })));
 const ChatPage = lazy(() => import("@/pages/ChatPage").then((m) => ({ default: m.ChatPage })));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
+const PrivacyPage = lazy(() => import("@/pages/PrivacyPage").then((m) => ({ default: m.PrivacyPage })));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 
 const blank = <div className="min-h-dvh bg-bg" />;
@@ -45,6 +46,7 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy" element={<Suspense fallback={blank}><PrivacyPage /></Suspense>} />
       <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
           <Route index element={page(<DashboardPage />)} />

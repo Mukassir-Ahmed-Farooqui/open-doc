@@ -37,7 +37,6 @@ os.environ.update(
         "GEMINI_API_KEY": "",
         "JWT_SECRET_KEY": "test-secret-key-that-is-long-enough-123456",
         "RATE_LIMIT_AUTH": "1000/minute",
-        "RATE_LIMIT_QUERY": "1000/minute",
         "RATE_LIMIT_UPLOAD": "1000/minute",
         "AI_QUESTIONS_PER_USER_MINUTE": "1000",
         "AI_QUESTIONS_PER_USER_DAY": "1000",
@@ -102,8 +101,6 @@ async def client(app) -> AsyncIterator[httpx.AsyncClient]:
         yield c
     from sqlalchemy import text
 
-    from app.ratelimit import limiter
-
     async with app.state.db.sessionmaker() as s:
         await s.execute(
             text(
@@ -113,7 +110,6 @@ async def client(app) -> AsyncIterator[httpx.AsyncClient]:
         )
         await s.commit()
     app.state.rag.llm = None
-    limiter.reset()
 
 
 async def register_and_login(client: httpx.AsyncClient, email: str, password: str = "password123") -> dict:

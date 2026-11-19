@@ -17,6 +17,14 @@ import {
   type SummaryStyle,
 } from "./schemas";
 
+export const CHAT_PAGE_LIMIT = 100;
+
+function pageQuery({ limit = CHAT_PAGE_LIMIT, offset = 0 }: { limit?: number; offset?: number }): string {
+  const q = new URLSearchParams({ limit: String(limit) });
+  if (offset) q.set("offset", String(offset));
+  return `?${q}`;
+}
+
 export interface ApiClientOptions {
   baseUrl?: string;
   origin?: string;
@@ -144,6 +152,10 @@ export class ApiClient {
   updateMe(body: { full_name: string | null }) {
     return this.json("PATCH", "/auth/me", UserSchema, { body });
   }
+  /** Permanently delete the account and all its data. A wrong password is a 403 (the session stays valid). */
+  deleteAccount(password: string) {
+    return this.json("DELETE", "/auth/me", StatusResponseSchema, { body: { password } });
+  }
 
   /* ── documents ── */
   listDocuments(signal?: AbortSignal) {
@@ -231,14 +243,16 @@ export class ApiClient {
   }
 
   /* ── chats ── */
-  listChats(signal?: AbortSignal) {
-    return this.json("GET", "/chats", z.array(ChatSchema), { signal });
+  /** The API pages chat lists and chat messages (default 50, max 100); the UI asks for the max. */
+  listChats(signal?: AbortSignal, page: { limit?: number; offset?: number } = {}) {
+    return this.json("GET", `/chats${pageQuery(page)}`, z.array(ChatSchema), { signal });
   }
   createChat(selectedDocIds: string[]) {
     return this.json("POST", "/chats", ChatSchema, { body: { selected_doc_ids: selectedDocIds } });
   }
-  getChat(chatId: string, signal?: AbortSignal) {
-    return this.json("GET", `/chats/${encodeURIComponent(chatId)}`, ChatDetailSchema, { signal });
+  /** The chat with its newest `limit` messages (skipping `offset` newer ones), oldest-first. */
+  getChat(chatId: string, signal?: AbortSignal, page: { limit?: number; offset?: number } = {}) {
+    return this.json("GET", `/chats/${encodeURIComponent(chatId)}${pageQuery(page)}`, ChatDetailSchema, { signal });
   }
   renameChat(chatId: string, title: string) {
     return this.json("PATCH", `/chats/${encodeURIComponent(chatId)}`, ChatSchema, { body: { title } });

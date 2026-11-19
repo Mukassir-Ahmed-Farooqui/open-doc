@@ -123,6 +123,7 @@ async def test_stream_endpoint_sse(app, client, auth) -> None:
     ) as r:
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("text/event-stream")
+        assert r.headers["x-content-type-options"] == "nosniff"
         raw = (await r.aread()).decode()
     for block in raw.strip().split("\n\n"):
         lines = dict(line.split(": ", 1) for line in block.splitlines())
@@ -168,3 +169,39 @@ async def test_processing_documents_are_not_queryable(app, client, auth) -> None
     assert r.status_code == 409
     while await app.state.worker.run_once():
         pass
+
+
+async def test_chat_list_and_messages_pagination(app, client, auth) -> None:
+    import uuid
+
+    from app.db.models import Message
+
+    ids = [(await client.post("/api/v1/chats", headers=auth, json={})).json()["id"] for _ in range(3)]
+    listed = (await client.get("/api/v1/chats", headers=auth)).json()
+    assert len(listed) == 3 and set(listed[0]) >= {"id", "title"}  # shape unchanged: a plain list
+    page1 = (await client.get("/api/v1/chats?limit=2", headers=auth)).json()
+    page2 = (await client.get("/api/v1/chats?limit=2&offset=2", headers=auth)).json()
+    assert len(page1) == 2 and len(page2) == 1
+    assert {c["id"] for c in page1 + page2} == set(ids)
+
+    chat_id = ids[0]
+    async with app.state.db.sessionmaker() as s:
+        for i in range(5):  # clock_timestamp() default orders them by insert
+            s.add(Message(chat_id=uuid.UUID(chat_id), role="user", content=f"m{i}"))
+            await s.flush()
+        await s.commit()
+
+    def contents(detail: dict) -> list[str]:
+        return [m["content"] for m in detail["messages"]]
+
+    full = (await client.get(f"/api/v1/chats/{chat_id}", headers=auth)).json()
+    assert contents(full) == ["m0", "m1", "m2", "m3", "m4"]
+    newest = (await client.get(f"/api/v1/chats/{chat_id}?limit=2", headers=auth)).json()
+    assert contents(newest) == ["m3", "m4"]
+    older = (await client.get(f"/api/v1/chats/{chat_id}?limit=2&offset=2", headers=auth)).json()
+    assert contents(older) == ["m1", "m2"]
+
+    for bad in ("limit=0", "limit=101", "offset=-1", "limit=abc"):
+        assert (await client.get(f"/api/v1/chats?{bad}", headers=auth)).status_code == 422, bad
+        assert (await client.get(f"/api/v1/chats/{chat_id}?{bad}", headers=auth)).status_code == 422, bad
+    assert (await client.get("/api/v1/chats?limit=100", headers=auth)).status_code == 200

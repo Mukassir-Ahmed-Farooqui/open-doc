@@ -51,3 +51,10 @@ describe("RegisterPage", () => {
     expect(screen.getByLabelText("Password")).toHaveAttribute("aria-invalid", "true");
   });
 });
+
+describe("RegisterPage legal link", () => {
+  it("links to the Privacy & Terms", () => {
+    renderWithProviders(<RegisterPage />, { route: "/register" });
+    expect(screen.getByRole("link", { name: "Privacy & Terms" })).toHaveAttribute("href", "/privacy");
+  });
+});

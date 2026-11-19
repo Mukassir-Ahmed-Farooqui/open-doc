@@ -32,7 +32,7 @@ Codes: `bad_request` 400, `unauthorized` 401, `forbidden` 403, `not_found` 404, 
 | GET | `/auth/me` | | `{id, email, full_name, created_at}` |
 | PATCH | `/auth/me` | `{full_name?}` | same as GET |
 
-Emails are stored lower-cased. Login and register are rate limited (`RATE_LIMIT_AUTH`).
+Emails are stored lower-cased. Login and register are rate limited per client IP (`RATE_LIMIT_AUTH`), and login also per account: after `LOGIN_FAILURES_PER_EMAIL` (5) failures in `LOGIN_FAILURE_WINDOW_MINUTES` (15) it returns 429 with `Retry-After`.
 
 ## Documents
 
