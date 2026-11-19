@@ -97,6 +97,16 @@ describe("ApiClient", () => {
     expect(err.code).toBe("network_error");
   });
 
+  it("asks for 100 messages per chat and 100 chats per list", async () => {
+    const chat = { id: "c1", title: "t", selected_doc_ids: [], created_at: "t", updated_at: "t", messages: [] };
+    const f = vi.fn(async () => json(chat));
+    await makeClient(f as unknown as typeof fetch).getChat("c1");
+    expect((f.mock.calls[0] as unknown as [string])[0]).toBe("https://api.test/api/v1/chats/c1?limit=100");
+    const g = vi.fn(async () => json([]));
+    await makeClient(g as unknown as typeof fetch).listChats();
+    expect((g.mock.calls[0] as unknown as [string])[0]).toBe("https://api.test/api/v1/chats?limit=100");
+  });
+
   it("creates chats with the selected documents", async () => {
     const chat = { id: "c1", title: "New Chat", selected_doc_ids: [doc.doc_id], created_at: "t", updated_at: "t" };
     const f = vi.fn(async () => json(chat, 201));
