@@ -26,7 +26,7 @@ backend/
     main.py              app factory, lifespan wiring, CORS, request-id + access-log middleware
     errors.py            error envelope and handlers
     logging_setup.py     JSON logs with request id
-    ratelimit.py         in-memory sliding-window limiter (dependency)
+    ratelimit.py         Postgres-backed fixed-window limiter + per-account failed-login limit
     db/                  SQLAlchemy 2.0 models, async engine
     storage/             ObjectStorage protocol; local and S3 drivers
     auth/                bcrypt + PyJWT
@@ -117,7 +117,7 @@ Why, from [BENCHMARKS.md](BENCHMARKS.md) (38 questions, 8 contracts):
 | **Structure-aware parent-child chunks** | Small children rank precisely; parents give the LLM the whole clause and section heading for citations | Fixed recursive splitting (kept as the benchmark baseline); semantic chunking (needs embeddings at chunk time, unclear gain on clause-structured contracts) |
 | **No GraphRAG / LightRAG** | They need many LLM calls per document to extract entities and relations (cost and rate limits on free tiers), a graph store, and they target corpus-wide "global" questions. Questions here are scoped to a few selected documents and answered from specific clauses | Could be revisited for cross-document analytics |
 | **Regex query classification** | Deterministic, free, testable; misclassification only changes how context is gathered | An LLM classifier call per question (latency, cost) |
-| **In-memory rate limiter** | Abuse protection without Redis; limits are per instance | slowapi (was installed but unused; needs `request` in every signature); Redis-backed limits |
+| **Postgres rate limiter** | Abuse protection without Redis: counters live in `usage_counters` (same table as the beta quotas), so they survive restarts; IPs come from `quota.client_ip()` | In-memory limiter (reset on every restart, per instance); slowapi; Redis |
 | **Hard deletes** | A user deleting a document expects the file and its text gone | Soft delete that kept files on disk |
 
 ## Prompt-injection stance

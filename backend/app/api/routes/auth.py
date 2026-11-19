@@ -13,7 +13,7 @@ from app.config import Settings, get_settings
 from app.db.models import User
 from app.errors import AppError
 from app.quota import check_signup
-from app.ratelimit import rate_limit
+from app.ratelimit import check_login_allowed, email_hash, rate_limit, record_login_failure
 from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
@@ -58,13 +58,18 @@ async def register(
 @router.post("/login", response_model=TokenResponse, dependencies=[Depends(rate_limit("rate_limit_auth"))])
 async def login(
     body: LoginRequest,
+    request: Request,
     session: AsyncSession = Depends(get_session),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
+    ehash = email_hash(settings, body.email)
+    # Per-account lock-out (same for known and unknown emails, so it reveals nothing).
+    await check_login_allowed(request, settings, ehash)
     user = (await session.execute(select(User).where(User.email == body.email.lower()))).scalar_one_or_none()
     # Always run bcrypt so response time does not reveal whether the email exists.
     valid = await verify_password(body.password, user.hashed_password if user else DUMMY_HASH)
     if user is None or not valid:
+        await record_login_failure(request, settings, ehash)
         raise AppError(401, "Invalid credentials")
     if not user.is_active:
         raise AppError(403, "User account is deactivated")

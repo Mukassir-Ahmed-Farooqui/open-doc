@@ -131,9 +131,12 @@ class Settings(BaseSettings):
     warm_models_on_startup: bool = False
 
     # ── Rate limits (requests per window, per user or client IP) ──
+    # Postgres-backed (usage_counters), keyed by JWT subject or quota.client_ip().
     rate_limit_auth: str = "10/minute"
-    rate_limit_query: str = "30/minute"
     rate_limit_upload: str = "30/hour"
+    # Per-account failed-login limit (keyed by a hash of the normalised email).
+    login_failures_per_email: int = 5
+    login_failure_window_minutes: int = 15
 
     # ── Public beta quotas (Postgres-backed; survive restarts and multiple workers) ──
     ai_enabled: bool = True  # emergency kill switch: false -> every AI request gets 503

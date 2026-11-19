@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from app.config import Settings
-from app.ratelimit import SlidingWindowLimiter, parse_limit
+from app.ratelimit import _window, parse_limit
 from app.storage import ObjectNotFoundError
 from app.storage.local import LocalStorage
 
@@ -52,13 +52,10 @@ def test_parse_limit() -> None:
         parse_limit("5/fortnight")
 
 
-async def test_sliding_window() -> None:
-    lim = SlidingWindowLimiter()
-    assert await lim.hit("k", 2, 60) is None
-    assert await lim.hit("k", 2, 60) is None
-    wait = await lim.hit("k", 2, 60)
-    assert wait is not None and 0 < wait <= 60
-    assert await lim.hit("other", 2, 60) is None
+def test_fixed_window() -> None:
+    start, end, left = _window(60, now=1_000_030.5)
+    assert start == 1_000_020 and end.timestamp() == 1_000_080 and left == 50
+    assert _window(60, now=1_000_079.9)[0] == start and _window(60, now=1_000_080)[0] == start + 60
 
 
 async def test_local_storage_roundtrip_and_key_validation(tmp_path) -> None:

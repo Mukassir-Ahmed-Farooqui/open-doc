@@ -1,24 +1,34 @@
-"""Small in-memory sliding-window rate limiter used as a FastAPI dependency.
+"""Request rate limits as a FastAPI dependency, stored in Postgres (``usage_counters``).
 
-Keyed by the JWT subject when a bearer token is present (signature verified), otherwise by the
-client IP (first X-Forwarded-For hop, as set by Railway / Cloud Run front ends). State is
-per-process: with several instances the effective limit is per instance, which is acceptable
-for abuse protection on free-tier hosting and avoids a Redis dependency.
+Keyed by the JWT subject when a valid bearer token is present, otherwise by the client IP from
+``quota.client_ip()`` (edge header / right-most ``X-Forwarded-For`` hop, never the
+client-controlled first hop). Counters are fixed windows (the key embeds the window start), so
+limits survive restarts, deploys and several workers, the same way the beta quotas do.
+
+Also holds the per-account failed-login limit: failures are counted per keyed hash of the
+normalised email, so the raw address never lands in the counters table or the logs.
 """
 
 from __future__ import annotations
 
-import asyncio
+import contextlib
+import hashlib
+import hmac
+import logging
 import math
 import time
-from collections import defaultdict, deque
+from datetime import UTC, datetime
 
 import jwt
 from fastapi import Request
+from sqlalchemy import text
 
 from app.auth.security import decode_access_token
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.errors import AppError
+from app.quota import Limit, QuotaExceededError, client_ip, consume
+
+logger = logging.getLogger(__name__)
 
 _UNITS = {"second": 1, "minute": 60, "hour": 3600, "day": 86400}
 
@@ -31,31 +41,12 @@ def parse_limit(spec: str) -> tuple[int, int]:
     return int(count), _UNITS[unit]
 
 
-class SlidingWindowLimiter:
-    def __init__(self) -> None:
-        self._hits: dict[str, deque[float]] = defaultdict(deque)
-        self._lock = asyncio.Lock()
-
-    async def hit(self, key: str, limit: int, window: int) -> float | None:
-        """Record a hit; return seconds to wait if over the limit, else None."""
-        now = time.monotonic()
-        async with self._lock:
-            q = self._hits[key]
-            while q and q[0] <= now - window:
-                q.popleft()
-            if len(q) >= limit:
-                return q[0] + window - now
-            q.append(now)
-            if len(self._hits) > 50_000:
-                for k in [k for k, v in self._hits.items() if not v]:
-                    del self._hits[k]
-            return None
-
-    def reset(self) -> None:
-        self._hits.clear()
-
-
-limiter = SlidingWindowLimiter()
+def _window(window: int, now: float | None = None) -> tuple[int, datetime, int]:
+    """Fixed window containing ``now``: (window start epoch, window end, seconds left)."""
+    now = time.time() if now is None else now
+    start = int(now // window) * window
+    end = start + window
+    return start, datetime.fromtimestamp(end, UTC), max(1, math.ceil(end - now))
 
 
 def client_key(request: Request) -> str:
@@ -65,19 +56,76 @@ def client_key(request: Request) -> str:
             return "user:" + str(decode_access_token(get_settings(), auth[7:].strip())["sub"])
         except jwt.InvalidTokenError:
             pass
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return "ip:" + forwarded.split(",")[0].strip()
-    return "ip:" + (request.client.host if request.client else "unknown")
+    return "ip:" + client_ip(request)
+
+
+def _too_many(retry: int, message: str = "Too many requests, slow down.") -> AppError:
+    return AppError(429, message, code="rate_limited", headers={"Retry-After": str(retry)})
 
 
 def rate_limit(setting_name: str):
     async def dependency(request: Request) -> None:
         limit, window = parse_limit(getattr(get_settings(), setting_name))
         scope = request.scope.get("route").path if request.scope.get("route") else request.url.path
-        wait = await limiter.hit(f"{setting_name}:{scope}:{client_key(request)}", limit, window)
-        if wait is not None:
-            retry = max(1, math.ceil(wait))
-            raise AppError(429, "Too many requests, slow down.", headers={"Retry-After": str(retry)})
+        start, end, left = _window(window)
+        lim = Limit(
+            f"rl:{setting_name}:{scope}:{client_key(request)}:w:{start}"[:200],
+            limit,
+            end,
+            "Too many requests, slow down.",
+            left,
+            setting_name,
+            refundable=False,
+        )
+        try:
+            await consume(request.app.state.db.sessionmaker, [lim])
+        except QuotaExceededError:
+            logger.warning("rate_limited", extra={"limit": setting_name, "path": scope})
+            raise _too_many(left) from None
 
     return dependency
+
+
+# ── Per-account failed-login limit ──
+
+
+def email_hash(settings: Settings, email: str) -> str:
+    """Keyed hash of the normalised email (HMAC with the server secret, so it can't be reversed
+    with a dictionary of addresses). Used for counters and logs instead of the address."""
+    normalised = email.strip().lower().encode()
+    return hmac.new(settings.jwt_secret_key.encode(), normalised, hashlib.sha256).hexdigest()[:32]
+
+
+def _login_failure_limit(settings: Settings, ehash: str) -> Limit:
+    start, end, left = _window(settings.login_failure_window_minutes * 60)
+    return Limit(
+        f"login_fail:{ehash}:w:{start}",
+        settings.login_failures_per_email,
+        end,
+        "Too many failed sign-in attempts for this account. Please wait and try again.",
+        left,
+        "login_failures_email",
+        refundable=False,
+    )
+
+
+_COUNT_SQL = text("SELECT count FROM usage_counters WHERE key = :key AND expires_at > now()")
+
+
+async def check_login_allowed(request: Request, settings: Settings, ehash: str) -> None:
+    """Reject (429) before any password check once an account has too many recent failures."""
+    lim = _login_failure_limit(settings, ehash)
+    async with request.app.state.db.sessionmaker() as session:
+        count = (await session.execute(_COUNT_SQL, {"key": lim.key})).scalar()
+    if count is not None and count >= lim.limit:
+        logger.warning(
+            "login_locked", extra={"email_hash": ehash, "ip": client_ip(request), "limit": lim.limit}
+        )
+        raise _too_many(lim.retry_after, lim.message)
+
+
+async def record_login_failure(request: Request, settings: Settings, ehash: str) -> None:
+    lim = _login_failure_limit(settings, ehash)
+    # Already at the limit: nothing to add; the next attempt is rejected by check_login_allowed.
+    with contextlib.suppress(QuotaExceededError):
+        await consume(request.app.state.db.sessionmaker, [lim])
