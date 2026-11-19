@@ -10,7 +10,7 @@ import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -48,11 +48,27 @@ NO_DOCUMENTS_ANSWER = (
 # ───────────────────────────── chat CRUD ─────────────────────────────
 
 
+@dataclass(frozen=True)
+class Page:
+    limit: int
+    offset: int
+
+
+def page_params(
+    limit: int = Query(50, ge=1, le=100, description="Items per page (1-100)"),
+    offset: int = Query(0, ge=0, le=100_000, description="Items to skip"),
+) -> Page:
+    return Page(limit=limit, offset=offset)
+
+
 @router.get("/chats", response_model=list[ChatResponse])
 async def list_chats(
-    user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)
+    page: Page = Depends(page_params),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
 ) -> list[ChatResponse]:
-    return [chat_svc.chat_response(c) for c in await chat_svc.list_chats(session, user.id)]
+    chats = await chat_svc.list_chats(session, user.id, limit=page.limit, offset=page.offset)
+    return [chat_svc.chat_response(c) for c in chats]
 
 
 @router.post("/chats", response_model=ChatResponse, status_code=status.HTTP_201_CREATED)
@@ -71,10 +87,14 @@ async def create_chat(
 
 @router.get("/chats/{chat_id}", response_model=ChatDetailResponse)
 async def get_chat(
-    chat_id: str, user: User = Depends(get_current_user), session: AsyncSession = Depends(get_session)
+    chat_id: str,
+    page: Page = Depends(page_params),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
 ) -> ChatDetailResponse:
+    """The chat with its newest ``limit`` messages (skipping ``offset`` newer ones), oldest-first."""
     chat = await chat_svc.get_chat(session, user.id, parse_uuid(chat_id, "chat_id"))
-    return await chat_svc.chat_detail(session, chat)
+    return await chat_svc.chat_detail(session, chat, limit=page.limit, offset=page.offset)
 
 
 @router.patch("/chats/{chat_id}", response_model=ChatResponse)

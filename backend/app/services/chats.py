@@ -37,8 +37,16 @@ def message_response(msg: Message) -> MessageResponse:
     )
 
 
-async def list_chats(session: AsyncSession, user_id: uuid.UUID) -> list[Chat]:
-    rows = await session.execute(select(Chat).where(Chat.user_id == user_id).order_by(Chat.updated_at.desc()))
+async def list_chats(
+    session: AsyncSession, user_id: uuid.UUID, limit: int = 50, offset: int = 0
+) -> list[Chat]:
+    rows = await session.execute(
+        select(Chat)
+        .where(Chat.user_id == user_id)
+        .order_by(Chat.updated_at.desc(), Chat.id)
+        .limit(limit)
+        .offset(offset)
+    )
     return list(rows.scalars())
 
 
@@ -51,12 +59,21 @@ async def get_chat(session: AsyncSession, user_id: uuid.UUID, chat_id: uuid.UUID
     return chat
 
 
-async def chat_detail(session: AsyncSession, chat: Chat) -> ChatDetailResponse:
+async def chat_detail(
+    session: AsyncSession, chat: Chat, limit: int = 50, offset: int = 0
+) -> ChatDetailResponse:
+    """The chat with a page of its messages. Paging counts back from the newest message
+    (``offset=0`` is the latest ``limit`` messages); the page is returned oldest-first."""
     msgs = await session.execute(
-        select(Message).where(Message.chat_id == chat.id).order_by(Message.created_at)
+        select(Message)
+        .where(Message.chat_id == chat.id)
+        .order_by(Message.created_at.desc(), Message.id.desc())
+        .limit(limit)
+        .offset(offset)
     )
+    page = list(msgs.scalars())[::-1]
     base = chat_response(chat)
-    return ChatDetailResponse(**base.model_dump(), messages=[message_response(m) for m in msgs.scalars()])
+    return ChatDetailResponse(**base.model_dump(), messages=[message_response(m) for m in page])
 
 
 async def recent_history(session: AsyncSession, chat_id: uuid.UUID, limit: int) -> list[tuple[str, str]]:
