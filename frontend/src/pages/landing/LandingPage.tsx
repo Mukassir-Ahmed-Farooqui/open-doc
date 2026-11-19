@@ -560,6 +560,7 @@ export default function LandingPage() {
             <Link className="flex min-h-11 items-center text-fg-muted hover:text-fg" to="/register">Create account</Link>
             <a className="flex min-h-11 items-center text-fg-muted hover:text-fg" href={`${REPO}/blob/main/docs/ARCHITECTURE.md`} target="_blank" rel="noreferrer">Architecture</a>
             <a className="flex min-h-11 items-center text-fg-muted hover:text-fg" href={`${REPO}/blob/main/docs/API.md`} target="_blank" rel="noreferrer">API</a>
+            <Link className="flex min-h-11 items-center text-fg-muted hover:text-fg" to="/privacy">Privacy &amp; Terms</Link>
           </nav>
         </div>
         <p className="mx-auto mt-10 max-w-6xl text-xs text-fg-subtle">

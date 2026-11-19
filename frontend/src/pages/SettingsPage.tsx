@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, Monitor, Moon, RotateCw, Sun, Trash2 } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
 import { tokenStore } from "@/auth/tokenStore";
@@ -141,6 +141,12 @@ export function SettingsPage() {
         <Button variant="outline" onClick={logout}>
           <LogOut /> Sign out
         </Button>
+      </Section>
+
+      <Section title="Privacy" description="What OpenDoc stores and who processes it.">
+        <Link to="/privacy" className="text-sm font-medium text-accent hover:underline">
+          Read the Privacy &amp; Terms
+        </Link>
       </Section>
 
       <Section title="Delete account" description="Permanently delete your account, documents and chats.">
