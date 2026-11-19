@@ -82,6 +82,10 @@ async def test_auth_limit_ignores_spoofed_forwarded_for(app, client, monkeypatch
         body = {"email": f"spoof{i}@example.com", "password": "password1"}
         codes.append((await client.post("/api/v1/auth/login", json=body, headers=headers)).status_code)
     if codes != [401, 401, 401, 429]:  # a minute boundary may fall between the calls
+        # Start the retry from empty counters: calls after the boundary already count in the new window.
+        async with app.state.db.sessionmaker() as s:
+            await s.execute(text("DELETE FROM usage_counters WHERE key LIKE 'rl:%'"))
+            await s.commit()
         codes = [
             (
                 await client.post(
