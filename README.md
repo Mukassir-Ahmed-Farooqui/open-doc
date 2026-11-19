@@ -22,7 +22,8 @@ OpenDoc lets each user upload PDFs, DOCX, Markdown or text files and ask questio
 
 <p>
   <a href="https://open-doc-mocha.vercel.app"><b>Live demo</b></a> ·
-  <a href="https://opendoc-api.onrender.com/docs">API docs</a> ·
+  <a href="https://opendoc-api.onrender.com/health">API</a> ·
+  <a href="docs/API.md">API reference</a> ·
   <a href="docs/ARCHITECTURE.md">Architecture</a> ·
   <a href="docs/BENCHMARKS.md">Benchmarks</a>
 </p>
@@ -77,22 +78,40 @@ graph LR
 
 Measured on this setup (2026-11-04): a 50-page PDF ingested in about 6 minutes with peak memory 307 MB of 512 MB.
 
+Operational notes:
+
+* **Render does not always deploy on merge.** After merging to `main`, check that Render started a deploy for the new commit; if not, use *Manual Deploy* in the dashboard.
+* **The free Supabase project pauses after 7 days without activity.** Uploads and the PDF viewer then fail until the project is restored from the Supabase dashboard.
+
 ### Public beta limits
 
-Limits are stored in Postgres, so they hold across restarts and instances. All are environment variables (see `.env.example`).
+Counters are stored in Postgres, so they hold across restarts and instances. All values are environment variables in `backend/app/config.py` (see `.env.example`).
 
 | Limit | Default | Response when hit |
 |---|---|---|
-| File size | 10 MB | 413 |
-| Pages per PDF | 50 | 422 |
-| Documents per user | 5 | 429 |
-| Storage per user | 25 MB | 429 |
+| File size | 10 MB (`MAX_UPLOAD_MB`) | 413 |
+| Pages per PDF | 50 (`MAX_PDF_PAGES`) | 422 |
+| Documents per user | 5 (`MAX_DOCS_PER_USER`) | 429 |
+| Storage per user | 25 MB (`MAX_STORAGE_MB_PER_USER`) | 429 |
+| Uploads | 30 per hour (`RATE_LIMIT_UPLOAD`) | 429 with `Retry-After` |
 | AI questions per user | 5 per minute, 30 per day | 429 with `Retry-After` |
-| AI questions across all users | 300 per day | 429 with `Retry-After` |
-| Sign-ups per IP | 3 per day | 429 |
+| AI questions across all users | 300 per day (`AI_QUESTIONS_GLOBAL_DAY`) | 429 with `Retry-After` |
+| Sign-up attempts per IP | 3 per day (`SIGNUPS_PER_IP_DAY`) | 429 with `Retry-After` |
+| Login / register requests | 10 per minute per IP (`RATE_LIMIT_AUTH`) | 429 with `Retry-After` |
+| Failed logins per account | 5 per 15 minutes (`LOGIN_FAILURES_PER_EMAIL`) | 429 with `Retry-After` |
 | Kill switch | `AI_ENABLED=false` | 503 on AI routes; documents stay available |
 
-Daily windows reset at UTC midnight. A question that fails on the LLM side is refunded.
+Daily windows reset at UTC midnight. A question that fails on the LLM side is refunded from the user's daily quota. Sessions are JWTs that expire after 60 minutes (`JWT_EXPIRE_MINUTES`).
+
+### Security & privacy
+
+* **Rate limits and quotas** as in the table above. Login is limited both per client IP and per account (keyed by a hash of the email, the same for known and unknown addresses); every sign-up attempt spends the per-IP quota, so the 409 for an existing email can't be used to probe many addresses. The client IP is the edge header or the right-most `X-Forwarded-For` hop, not the spoofable first hop.
+* **Security headers.** The API adds `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` and `Referrer-Policy: strict-origin-when-cross-origin` to every response. The site (`frontend/vercel.json`) sends the same plus a `Permissions-Policy` and a **report-only** `Content-Security-Policy`.
+* **No public API docs in production.** `/docs`, `/redoc` and `/openapi.json` exist only when `APP_ENV` is not `production`.
+* **No remote images in answers.** The chat Markdown renderer drops `<img>`, so a document or model output can't make the browser load an external URL.
+* **Account deletion.** *Settings → Delete account* (password required) calls `DELETE /api/v1/auth/me`, which removes the stored files first, then the user and, by cascade, every document, chunk, chat and query log.
+* **Privacy & Terms** at [/privacy](https://open-doc-mocha.vercel.app/privacy), linked from sign-up, the landing footer and Settings.
+* **Known gaps.** The access token is kept in `localStorage`, so an XSS bug could read it. There is no CAPTCHA on sign-up or login. Logout only clears the token in the browser; it is not revoked on the server and stays valid until it expires.
 
 Details, the data model and the rejected alternatives (Qdrant, LangGraph, docling, Redis queues, GraphRAG) are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -113,6 +132,20 @@ Generation, 46 questions on the live Groq API (38 answerable, 8 out of scope), j
 | Faithfulness | Gold-cited rate | Abstention recall | False abstention | TTFT p50 / p95 |
 |---|---|---|---|---|
 | 97.3% | 94.6% | 100% (8/8) | 2.6% | 1.94 s / 3.75 s |
+
+### API
+
+All routes are under `/api/v1` and need `Authorization: Bearer <JWT>` except register and login. Full reference: [docs/API.md](docs/API.md).
+
+| Area | Routes |
+|---|---|
+| Auth | `POST /auth/register`, `POST /auth/login`, `GET` / `PATCH /auth/me`, `DELETE /auth/me` (body `{password}`) |
+| Documents | `POST /upload`, `GET /documents`, `GET` / `DELETE /documents/{id}`, `GET /documents/{id}/file-url`, `/download`, `/summary` |
+| Chats | `GET /chats?limit=&offset=`, `POST /chats`, `GET /chats/{id}?limit=&offset=` (newest messages, returned oldest first), `PATCH /chats/{id}`, `PATCH /chats/{id}/documents`, `DELETE /chats/{id}` |
+| Answers | `POST /chats/{id}/messages`, `POST /chats/{id}/messages/stream` (SSE), `POST /query` |
+| Probes | `GET /health`, `GET /ready` (root, no auth) |
+
+`limit` defaults to 50 (1-100), `offset` to 0.
 
 ## Repository layout
 
@@ -138,7 +171,7 @@ docker compose up --build
 
 This starts Postgres with pgvector, MinIO (an S3-compatible bucket named `opendoc`) and the API, runs the migrations and serves:
 
-* API docs: http://localhost:8000/docs
+* API docs: http://localhost:8000/docs (development only)
 * Health: http://localhost:8000/health and http://localhost:8000/ready
 * MinIO console: http://localhost:9001 (`opendoc` / `opendoc-secret`)
 
@@ -187,7 +220,7 @@ GROQ_API_KEY=... python scripts/eval/run_generation.py
 
 ## Deployment
 
-The live setup is Vercel + Render free + Neon + Supabase Storage, described above. Google Cloud Run also works. Step-by-step guides, every environment variable, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
+The live setup is Vercel (frontend) + Render free (API) + Neon (Postgres) + Supabase Storage, described above. The step-by-step guide, every environment variable, migrations and health checks are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Documentation
 
@@ -196,7 +229,7 @@ The live setup is Vercel + Render free + Neon + Supabase Storage, described abov
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, data model, ingestion and retrieval pipelines, decisions and rejected alternatives, known limits |
 | [docs/API.md](docs/API.md) | Endpoints, error envelope, streaming format, contract changes vs the previous backend |
 | [docs/BENCHMARKS.md](docs/BENCHMARKS.md) | Retrieval results for every chunking x retrieval x scope configuration, abstention calibration, ingest timings, memory |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | Render + Supabase (live setup) and Cloud Run guides, environment variables, migrations, health checks |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Render + Supabase (live setup), environment variables, migrations, health checks |
 
 ## License
 
